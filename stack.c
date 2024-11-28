@@ -23,7 +23,7 @@ void	stack_free(struct s_stack *s)
 	free(s->data);
 }
 
-const char	*stack_op_name(enum stack_op op)
+const char	*stack_op_name(enum e_stack_op op)
 {
 	const static char	*names[] = {
 	[STACK_OP_SA] = "sa",

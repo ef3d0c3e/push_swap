@@ -60,7 +60,7 @@ static void	rrot_impl(const struct s_stack *s)
 
 void	stack_op(struct s_stack *sa,
 		struct s_stack *sb,
-		enum stack_op op)
+		enum e_stack_op op)
 {
 	const struct s_stack	*ss[2] = {sa, sb};
 	const uint8_t			operand = op & __STACK_OPERAND;
