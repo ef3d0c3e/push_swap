@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   push_swap.c                                        :+:      :+:    :+:   */
+/*   util.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -9,38 +9,49 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+#include <unistd.h>
 #include "libs/ft_printf/src/ft_printf.h"
 #include "libs/ft_printf/src/ft_printf_bonus.h"
 #include "push_swap.h"
-#include <limits.h>
-#include <stddef.h>
 
-
-
-int main(int ac, char **av)
+void	op(struct s_data *data, enum e_stack_op op)
 {
-	struct s_data	data;
+	enum e_stack_op	*tmp;
 	size_t			i;
 
-	if (ac < 2)
+	if (data->op_size >= data->op_cap)
 	{
-		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
-		exit(1);
+		tmp = malloc(sizeof(op) * ((data->op_cap + !data->op_cap) << 1));
+		if (!tmp)
+		{
+			ft_dprintf(2, "Error\n");
+			exit(1);
+		}
+		i = 0;
+		while (i++ < data->op_size)
+			tmp[i - 1] = data->ops[i - 1];
+		free(data->ops);
+		data->ops = tmp;
+		data->op_cap = (data->op_cap + !data->op_cap) << 1;
 	}
-	data = data_new(ac - 1);
-	i = 1;
-	while (i < ac)
-		data.sa.data[data.sa.size++] = atoi(av[i++]);
+	data->ops[data->op_size++] = op;
+	// TODO: Print at the end, after optimizing
+	ft_printf("%s\n", stack_op_name(op));
+	stack_op(&data->sa, &data->sb, op);
+}
 
-	sort_stack(&data);
-	i = 0;
-	ft_printf("---\n");
-	while (i < data.sa.size)
+int	sorted(const struct s_stack *s)
+{
+	size_t	i;
+
+	if (s->size < 2)
+		return (1);
+	i = 1;
+	while (i < s->size)
 	{
-		ft_printf("%d ", data.sa.data[i]);
+		if (s->data[i - 1] > s->data[i])
+			return (0);
 		++i;
 	}
-	data_free(&data);
-
-	return 0;
+	return (1);
 }

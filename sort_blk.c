@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   push_swap.c                                        :+:      :+:    :+:   */
+/*   sort_blk.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -9,38 +9,19 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "libs/ft_printf/src/ft_printf.h"
-#include "libs/ft_printf/src/ft_printf_bonus.h"
 #include "push_swap.h"
-#include <limits.h>
-#include <stddef.h>
 
-
-
-int main(int ac, char **av)
+static void	top(struct s_data *data, struct s_blk *blk)
 {
-	struct s_data	data;
-	size_t			i;
+	if (blk->dest == BLK_B_BOT && data->sb.size == blk->size)
+		blk->dest = BLK_B_TOP;
+	if (blk->dest == BLK_A_BOT && data->sb.size == blk->size)
+		blk->dest = BLK_A_TOP;
+}
 
-	if (ac < 2)
-	{
-		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
-		exit(1);
-	}
-	data = data_new(ac - 1);
-	i = 1;
-	while (i < ac)
-		data.sa.data[data.sa.size++] = atoi(av[i++]);
+void	sort_blk(struct s_data *data, struct s_blk blk)
+{
+	struct s_blk_split	split;
 
-	sort_stack(&data);
-	i = 0;
-	ft_printf("---\n");
-	while (i < data.sa.size)
-	{
-		ft_printf("%d ", data.sa.data[i]);
-		++i;
-	}
-	data_free(&data);
-
-	return 0;
+	top(data, &blk);
 }
