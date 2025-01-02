@@ -16,10 +16,18 @@
 
 enum	e_blk_dest
 {
-	BLK_A_TOP,
-	BLK_A_BOT,
-	BLK_B_TOP,
-	BLK_B_BOT,
+	__BLK_SEL = 0b10,
+	__BLK_A = 0b00,
+	__BLK_B = 0b10,
+
+	__BLK_POS = 0b01,
+	__BLK_BOT = 0b00,
+	__BLK_TOP = 0b01,
+
+	BLK_A_BOT = __BLK_A | __BLK_BOT,
+	BLK_A_TOP = __BLK_A | __BLK_TOP,
+	BLK_B_BOT = __BLK_B | __BLK_BOT,
+	BLK_B_TOP = __BLK_B | __BLK_TOP,
 };
 
 struct	s_blk
@@ -35,17 +43,41 @@ struct s_blk_split
 	struct s_blk	_2;
 };
 
+/**
+ * @brief Stores data for the push swap operations
+ */
 struct s_data
 {
 	struct s_stack	sa;
 	struct s_stack	sb;
+	/**
+	 * @brief Array of used operations
+	 *
+	 * This is then used for printing
+	 */
 	enum e_stack_op	*ops;
+	/**
+	 * @brief Size of the `ops` array
+	 */
 	size_t			op_size;
+	/**
+	 * @brief Capacity of the `ops` array
+	 */
 	size_t			op_cap;
 };
 
+/**
+ * @brief Creates a new `s_data` structure
+ *
+ * @param sz The size of the stacks in the s_data structure
+ */
 struct s_data	data_new(size_t sz);
 
+/**
+ * @brief Frees a `s_data` structure
+ *
+ * @param data Data to free
+ */
 void			data_free(struct s_data *data);
 
 /**

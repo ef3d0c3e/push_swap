@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   push_swap_data.c                                   :+:      :+:    :+:   */
+/*   blk.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -11,20 +11,18 @@
 /* ************************************************************************** */
 #include "push_swap.h"
 
-struct s_data	data_new(size_t sz)
-{
-	return ((struct s_data){
-		.sa = stack_new(sz),
-		.sb = stack_new(sz),
-		.ops = NULL,
-		.op_size = 0,
-		.op_cap = 0,
-	});
-}
 
-void	data_free(struct s_data *data)
+int	blk_at(struct s_data *data, struct s_blk *blk, size_t i)
 {
-	stack_free(&data->sa);
-	stack_free(&data->sb);
-	free(data->ops);
+	size_t					k;
+	const struct s_stack	*s = (void *)((blk->dest <= BLK_A_TOP)
+			* (unsigned long int)&data->sa + (blk->dest > BLK_A_TOP)
+			* (unsigned long int)&data->sb);
+	
+	k = ((blk->dest & __BLK_POS) == __BLK_TOP) * (s->size - 1 * (!!s->size));
+	while (((blk->dest & __BLK_POS) == __BLK_TOP) && --i > 0)
+		k = (s->size && k != s->size) * (k + 1) + (!s->size) * k;
+	while (((blk->dest & __BLK_POS) == __BLK_BOT) && --i > 0)
+		k = (s->size && k != s->size) * (k + 1) + (!s->size) * k;
+	return (s->data[i]);
 }
