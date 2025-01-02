@@ -13,7 +13,7 @@
 
 void	sort_2(struct s_data *data)
 {
-	if (data->sa.data[0] < data->sa.data[1])
+	if (data->sa.data[0] > data->sa.data[1])
 		op(data, STACK_OP_SA);
 }
 
@@ -24,16 +24,16 @@ void	sort_3(struct s_data *data)
 	const int	bot = data->sa.data[2];
 
 	if (top > mid && bot > mid && bot > top)
-		op(data, STACK_OP_SA);
-	else if (top > mid && bot > mid && top > bot)
-		op(data, STACK_OP_RA);
-	else if (mid > top && mid > bot && top > bot)
-		op(data, STACK_OP_RRA);
-	else if (mid > top && mid > bot && bot > top)
 	{
 		op(data, STACK_OP_SA);
 		op(data, STACK_OP_RA);
 	}
+	else if (top > mid && bot > mid && top > bot)
+		op(data, STACK_OP_RRA);
+	else if (mid > top && mid > bot && top > bot)
+		op(data, STACK_OP_RA);
+	else if (mid > top && mid > bot && bot > top)
+		op(data, STACK_OP_SA);
 	else if (top > mid && mid > bot && top > bot)
 	{
 		op(data, STACK_OP_SA);

@@ -88,7 +88,7 @@ void	sort_stack(struct s_data *data)
 	else
 	{
 		replace_with_index(&data->sa);
-		//sort_blk(data, (struct s_blk){BLK_A_TOP, data->sa.size});
+		sort_blk(data, (struct s_blk){BLK_A_TOP, data->sa.size});
 	}
 	//post_sort_optimization(data);
 }
