@@ -14,6 +14,23 @@
 #include "libs/ft_printf/src/ft_printf_bonus.h"
 #include "push_swap.h"
 
+/* memcopy from my libft */
+void	*ft_memcpy(void *dest, const void *src, size_t n)
+{
+	const unsigned char	*end = (unsigned char*)src + n;
+	unsigned char		*wd;
+	const unsigned char	*ws;
+
+	wd = dest;
+	ws = src;
+	while (end - wd >= sizeof(unsigned long int))
+		*(unsigned long int *)(wd += sizeof(unsigned long int)) = *(const unsigned long int *)(ws += sizeof(unsigned long int));
+	while (end != wd)
+		*(wd++) = *(ws++);
+
+	return (dest);
+}
+
 void	op(struct s_data *data, enum e_stack_op op)
 {
 	enum e_stack_op	*tmp;
@@ -38,6 +55,23 @@ void	op(struct s_data *data, enum e_stack_op op)
 	// TODO: Print at the end, after optimizing
 	ft_printf("%s\n", stack_op_name(op));
 	stack_op(&data->sa, &data->sb, op);
+	// debug
+	{
+		i = 0;
+		while (i < data->sa.size)
+		{
+			ft_printf("%d ", data->sa.data[i]);
+			++i;
+		}
+
+		ft_printf("\n");
+		i = 0;
+		while (i < data->sb.size)
+		{
+			ft_printf("%d ", data->sb.data[i]);
+			++i;
+		}
+	}
 }
 
 int	sorted(const struct s_stack *s)

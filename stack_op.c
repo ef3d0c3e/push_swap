@@ -9,73 +9,56 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+#include "libs/ft_printf/src/ft_printf.h"
 #include "stack.h"
 #include <stdint.h>
 
-/* memmove implementation from my libft */
-static void	*ft_memmove(void *dest, const void *src, size_t n)
-{
-	size_t				i;
-
-	if (!dest && !src)
-		return (dest);
-	i = 0;
-	if (src < dest)
-	{
-		while (i < n)
-		{
-			((char *)dest)[n - i - 1] = ((char *)src)[n - i - 1];
-			++i;
-		}
-	}
-	else
-	{
-		while (i < n)
-		{
-			((char *)dest)[i] = ((char *)src)[i];
-			++i;
-		}
-	}
-	return (dest);
-}
-
 /* The swap operator */
-static void	swap_impl(const struct s_stack *s)
+static inline void	swap_impl(const struct s_stack *s)
 {
-	int	tmp;
+	const int	tmp = s->data[0];
 
-	tmp = s->data[s->size - 1];
-	s->data[s->size - 1] = s->data[s->size - 2];
-	s->data[s->size - 2] = tmp;
+	s->data[0] = s->data[1];
+	s->data[1] = tmp;
 }
 
 /* The rotate operator */
-static void	rot_impl(const struct s_stack *s)
+static inline void	rot_impl(struct s_stack *s)
 {
-	int	tmp;
+	const int	tmp = s->data[0];
 
-	tmp = s->data[s->size - 1];
-	ft_memmove(&s->data[1], &s->data[0], (s->size - 1) * sizeof(int));
-	s->data[0] = tmp;
+	if (s->data == s->start + 2 * s->capacity)
+	{
+		ft_memcpy((int *)s->start + s->capacity, s->data, s->size);
+		s->data = (int *)s->start + s->capacity;
+	}
+
+	++s->data;
+	s->data[s->size-1] = tmp;
 }
 
 /* The reverse rotate operator */
-static void	rrot_impl(const struct s_stack *s)
+static void	rrot_impl(struct s_stack *s)
 {
-	int	tmp;
+	const int	tmp = s->data[s->size - 1];
 
-	tmp = s->data[0];
-	ft_memmove(&s->data[0], &s->data[1], (s->size - 1) * sizeof(int));
-	s->data[s->size - 1] = tmp;
+	if (s->data == s->start)
+	{
+		ft_memcpy((int *)s->start + s->capacity, s->data, s->size);
+		s->data = (int *)s->start + s->capacity;
+	}
+
+	--s->data;
+	s->data[0] = tmp;
 }
 
 void	stack_op(struct s_stack *sa,
 		struct s_stack *sb,
 		enum e_stack_op op)
 {
-	const struct s_stack	*ss[2] = {sa, sb};
 	const uint8_t			operand = op & __STACK_OPERAND;
 	const uint8_t			operator = op & __STACK_OPERATOR;
+	struct s_stack			*ss[2] = {sa, sb};
 	size_t					i;
 
 	i = 0;

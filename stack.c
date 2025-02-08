@@ -14,16 +14,17 @@
 
 struct s_stack	stack_new(size_t capacity)
 {
-	int	*data;
+	int	*start;
 
-	data = malloc(capacity * sizeof(int));
-	if (!data)
+	start = malloc(3 * capacity * sizeof(int));
+	if (!start)
 	{
 		ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
 		exit(1);
 	}
 	return ((struct s_stack){
-		.data = data,
+		.start = start,
+		.data = start + capacity,
 		.size = 0,
 		.capacity = capacity,
 	});
@@ -31,7 +32,7 @@ struct s_stack	stack_new(size_t capacity)
 
 void	stack_free(struct s_stack *s)
 {
-	free(s->data);
+	free((void *)s->start);
 }
 
 const char	*stack_op_name(enum e_stack_op op)

@@ -1,26 +1,45 @@
+/**
+ * @file Stack structure implementation
+ *
+ * The instructions set requires underlying stacks to function. They are called
+ * `stacks` however they act as double-ended queue because of the
+ * (reverse-)rotate operations. Since the stacks cannot grow (limited to the initial program input size),
+ * The stacks are implemented 
+ *
+ */
 #ifndef STACK_H
-# define STACK_H
+#define STACK_H
 
-# include <stdlib.h>
+#include <stdlib.h>
 
 /**
  * @brief The stack data structure
- *
- * TODO: Use a deque with capacity = 3 * (N=original capacity), with data at the center
- * When the top/bottom is reached, use memcpy instead of memmove to recenter the stack, this guarantees
- * that the expensive copying (of N elements) only happens every N rotation operations, therefore guaranteeing a O(1) time complexity
  */
 struct s_stack
 {
-	int		*data;
-	size_t	size;
-	/* const */ size_t	capacity;
-	/*
 	const int* start;
-	const int* end;
-	*/
-	
+	int* data;
+	size_t size;
+	size_t capacity;
 };
+
+/**
+ * @brief Creates a new @ref s_stack with given capacity
+ *
+ * @param capacity The stack's capacity
+ *
+ * @returns The newly created stack, exit(1) on malloc failure. The stack will
+ * have to be deallocated with @ref stack_free
+ */
+struct s_stack
+stack_new(size_t capacity);
+/**
+ * @brief Deallocates a @ref s_stack
+ *
+ * @param s Stack to free
+ */
+void
+stack_free(struct s_stack* s);
 
 /**
  * @brief All defined stack operations
@@ -47,14 +66,43 @@ struct s_stack
  */
 enum e_stack_op
 {
+	/**
+	 * @brief Stack A operand
+	 */
 	__STACK_OP_SEL_A = 0b00001,
+	/**
+	 * @brief Stack B operand
+	 */
 	__STACK_OP_SEL_B = 0b00010,
-	__STACK_OPERAND	= 0b00011,
+	/**
+	 * @brief Operands bitmask
+	 */
+	__STACK_OPERAND = 0b00011,
+	/**
+	 * @brief Swap operation
+	 * Valid for operands `A|B`
+	 */
 	__STACK_OP_SWAP = 0b00100,
+	/**
+	 * @brief Push operation
+	 * Valid for operands `A^B`
+	 */
 	__STACK_OP_PUSH = 0b01000,
+	/**
+	 * @brief Rotate operation
+	 * Valid for operands `A|B`
+	 */
 	__STACK_OP_ROTATE = 0b01100,
+	/**
+	 * @brief Reverse-rotate operation
+	 * Valid for operands `A|B`
+	 */
 	__STACK_OP_REV_ROTATE = 0b10000,
+	/**
+	 * @brief Operators bitmask
+	 */
 	__STACK_OPERATOR = 0b11100,
+
 	/**
 	 * @brief Swaps A's top 2 elements
 	 */
@@ -102,28 +150,14 @@ enum e_stack_op
 };
 
 /**
- * @brief Creates a new @ref s_stack with given capacity
- *
- * @param capacity The stack's capacity
- *
- * @returns The newly created stack, exit(1) on malloc failure. The stack will
- * have to be deallocated with @ref stack_free
- */
-struct s_stack	stack_new(size_t capacity);
-/**
- * @brief Deallocates a @ref s_stack
- *
- * @param s Stack to free
- */
-void			stack_free(struct s_stack *s);
-/**
  * @brief Utility to get the name of a stack operation
  *
  * @param op The @ref stack_op to get the name of
  *
  * @returns The name of `op`
  */
-const char		*stack_op_name(enum e_stack_op op);
+const char*
+stack_op_name(enum e_stack_op op);
 /**
  * @brief Applies a @ref stack_op over stack A's and B's
  *
@@ -135,8 +169,7 @@ const char		*stack_op_name(enum e_stack_op op);
  * @param sb Stack B
  * @param op Operation to apply
  */
-void			stack_op(struct s_stack *sa,
-					struct s_stack *sb,
-					enum e_stack_op op);
+void
+stack_op(struct s_stack* sa, struct s_stack* sb, enum e_stack_op op);
 
 #endif // STACK_H
