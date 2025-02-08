@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "libs/ft_printf/src/ft_printf.h"
+#include "push_swap.h"
 #include "stack.h"
 #include <stdint.h>
 

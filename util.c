@@ -23,9 +23,13 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 
 	wd = dest;
 	ws = src;
-	while (end - wd >= sizeof(unsigned long int))
-		*(unsigned long int *)(wd += sizeof(unsigned long int)) = *(const unsigned long int *)(ws += sizeof(unsigned long int));
-	while (end != wd)
+	while (end - ws >= (long int)sizeof(unsigned long int))
+	{
+		*(unsigned long int *)wd = *(const unsigned long int *)ws;
+		wd += 8;
+		ws += 8;
+	}
+	while (ws != end)
 		*(wd++) = *(ws++);
 
 	return (dest);
@@ -52,10 +56,9 @@ void	op(struct s_data *data, enum e_stack_op op)
 		data->op_cap = (data->op_cap + !data->op_cap) << 1;
 	}
 	data->ops[data->op_size++] = op;
-	// TODO: Print at the end, after optimizing
-	ft_printf("%s\n", stack_op_name(op));
 	stack_op(&data->sa, &data->sb, op);
 	// debug
+	if (0)
 	{
 		i = 0;
 		while (i < data->sa.size)

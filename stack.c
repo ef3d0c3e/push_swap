@@ -37,7 +37,7 @@ void	stack_free(struct s_stack *s)
 
 const char	*stack_op_name(enum e_stack_op op)
 {
-	const static char	*names[] = {
+	static const char	*names[] = {
 	[STACK_OP_SA] = "sa",
 	[STACK_OP_SB] = "sb",
 	[STACK_OP_SS] = "ss",
