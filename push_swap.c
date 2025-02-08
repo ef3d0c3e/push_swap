@@ -59,8 +59,8 @@ int main(int ac, char **av)
 	struct s_data	data;
 	size_t			i;
 
-	basic_tests();
-	return 0;
+	//basic_tests();
+	//return 0;
 	if (ac < 2)
 	{
 		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
@@ -71,15 +71,17 @@ int main(int ac, char **av)
 	while (i < (size_t)ac)
 		data.sa.data[data.sa.size++] = atoi(av[i++]);
 
+	//op(&data, STACK_OP_PB);
+	//op(&data, STACK_OP_PB);
+	//op(&data, STACK_OP_PB);
 	sort_stack(&data);
 	i = 0;
-	ft_printf("---\n");
 	while (i < data.sa.size)
 	{
 		ft_printf("%d ", data.sa.data[i]);
 		++i;
 	}
-	data_dump(&data);
+	//data_dump(&data);
 	data_free(&data);
 
 	return 0;

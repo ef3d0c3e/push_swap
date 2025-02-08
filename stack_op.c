@@ -17,10 +17,10 @@
 /* The swap operator */
 static inline void	swap_impl(const struct s_stack *s)
 {
-	const int	tmp = s->data[0];
+	const int	tmp = s->data[s->size - 1];
 
-	s->data[0] = s->data[1];
-	s->data[1] = tmp;
+	s->data[s->size - 1] = s->data[s->size - 2];
+	s->data[s->size - 2] = tmp;
 }
 
 /* The rotate operator */
@@ -53,6 +53,20 @@ static void	rrot_impl(struct s_stack *s)
 	s->data[0] = tmp;
 }
 
+/* Push implementation */
+static void push_impl(struct s_stack *from, struct s_stack *to)
+{
+	if (to->data == to->start + 2 * to->capacity)
+	{
+		ft_memcpy((int *)to->start + to->capacity, to->data, to->size);
+		to->data = (int *)to->start + to->capacity;
+	}
+	++to->size;
+	to->data[to->size - 1] = from->data[0];
+	++from->data;
+	--from->size;
+}
+
 void	stack_op(struct s_stack *sa,
 		struct s_stack *sb,
 		enum e_stack_op op)
@@ -67,18 +81,14 @@ void	stack_op(struct s_stack *sa,
 	{
 		if (!(operand & (1 << i)) && ++i)
 			continue ;
-		if (operator == __STACK_OP_SWAP && ss[i]->size > 1)
+		else if (operator == __STACK_OP_SWAP && ss[i]->size > 1)
 			swap_impl(ss[i]);
 		else if (operator == __STACK_OP_ROTATE && ss[i]->size > 1)
 			rot_impl(ss[i]);
 		else if (operator == __STACK_OP_REV_ROTATE && ss[i]->size > 1)
 			rrot_impl(ss[i]);
+		else if (operator == __STACK_OP_PUSH && ss[!i]->size > 0)
+			push_impl(ss[!i], ss[i]);
 		++i;
 	}
-	if (operator == __STACK_OP_PUSH && operand == __STACK_OP_SEL_A
-		&& sb->size > 0)
-		sa->data[sa->size++] = sb->data[--sb->size];
-	else if (operator == __STACK_OP_PUSH && operand == __STACK_OP_SEL_B
-		&& sa->size > 0)
-		sb->data[sb->size++] = sa->data[--sa->size];
 }

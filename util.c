@@ -13,6 +13,7 @@
 #include "libs/ft_printf/src/ft_printf.h"
 #include "libs/ft_printf/src/ft_printf_bonus.h"
 #include "push_swap.h"
+#include "stack.h"
 
 /* memcopy from my libft */
 void	*ft_memcpy(void *dest, const void *src, size_t n)
@@ -58,8 +59,9 @@ void	op(struct s_data *data, enum e_stack_op op)
 	data->ops[data->op_size++] = op;
 	stack_op(&data->sa, &data->sb, op);
 	// debug
-	if (0)
+	if (1)
 	{
+		ft_printf("%s\nA: ", stack_op_name(op));
 		i = 0;
 		while (i < data->sa.size)
 		{
@@ -67,13 +69,14 @@ void	op(struct s_data *data, enum e_stack_op op)
 			++i;
 		}
 
-		ft_printf("\n");
+		ft_printf("\nB: ");
 		i = 0;
 		while (i < data->sb.size)
 		{
 			ft_printf("%d ", data->sb.data[i]);
 			++i;
 		}
+		ft_printf("\n-----\n");
 	}
 }
 
