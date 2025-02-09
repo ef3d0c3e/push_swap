@@ -17,10 +17,10 @@
 /* The swap operator */
 static inline void	swap_impl(const struct s_stack *s)
 {
-	const int	tmp = s->data[s->size - 1];
+	const int	tmp = s->data[0];
 
-	s->data[s->size - 1] = s->data[s->size - 2];
-	s->data[s->size - 2] = tmp;
+	s->data[0] = s->data[1];
+	s->data[1] = tmp;
 }
 
 /* The rotate operator */
@@ -30,12 +30,12 @@ static inline void	rot_impl(struct s_stack *s)
 
 	if (s->data == s->start + 2 * s->capacity)
 	{
-		ft_memcpy((int *)s->start + s->capacity, s->data, s->size);
+		ft_memcpy((int *)s->start + s->capacity, s->data, s->size * sizeof(int));
 		s->data = (int *)s->start + s->capacity;
 	}
 
 	++s->data;
-	s->data[s->size-1] = tmp;
+	s->data[s->size - 1] = tmp;
 }
 
 /* The reverse rotate operator */
@@ -45,7 +45,7 @@ static void	rrot_impl(struct s_stack *s)
 
 	if (s->data == s->start)
 	{
-		ft_memcpy((int *)s->start + s->capacity, s->data, s->size);
+		ft_memcpy((int *)s->start + s->capacity, s->data, s->size * sizeof(int));
 		s->data = (int *)s->start + s->capacity;
 	}
 
@@ -56,13 +56,14 @@ static void	rrot_impl(struct s_stack *s)
 /* Push implementation */
 static void push_impl(struct s_stack *from, struct s_stack *to)
 {
-	if (to->data == to->start + 2 * to->capacity)
+	if (to->data == to->start)
 	{
-		ft_memcpy((int *)to->start + to->capacity, to->data, to->size);
+		ft_memcpy((int *)to->start + to->capacity, to->data, to->size * sizeof(int));
 		to->data = (int *)to->start + to->capacity;
 	}
+	--to->data;
 	++to->size;
-	to->data[to->size - 1] = from->data[0];
+	to->data[0] = from->data[0];
 	++from->data;
 	--from->size;
 }
@@ -81,13 +82,13 @@ void	stack_op(struct s_stack *sa,
 	{
 		if (!(operand & (1 << i)) && ++i)
 			continue ;
-		else if (operator == __STACK_OP_SWAP && ss[i]->size > 1)
+		else if (operator == __STACK_OP_SWAP && ss[i]->size >= 2)
 			swap_impl(ss[i]);
-		else if (operator == __STACK_OP_ROTATE && ss[i]->size > 1)
+		else if (operator == __STACK_OP_ROTATE && ss[i]->size >= 2)
 			rot_impl(ss[i]);
-		else if (operator == __STACK_OP_REV_ROTATE && ss[i]->size > 1)
+		else if (operator == __STACK_OP_REV_ROTATE && ss[i]->size >= 2)
 			rrot_impl(ss[i]);
-		else if (operator == __STACK_OP_PUSH && ss[!i]->size > 0)
+		else if (operator == __STACK_OP_PUSH && ss[!i]->size >= 1)
 			push_impl(ss[!i], ss[i]);
 		++i;
 	}

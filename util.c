@@ -27,8 +27,8 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 	while (end - ws >= (long int)sizeof(unsigned long int))
 	{
 		*(unsigned long int *)wd = *(const unsigned long int *)ws;
-		wd += 8;
-		ws += 8;
+		wd += sizeof(unsigned long int);
+		ws += sizeof(unsigned long int);
 	}
 	while (ws != end)
 		*(wd++) = *(ws++);
@@ -59,7 +59,7 @@ void	op(struct s_data *data, enum e_stack_op op)
 	data->ops[data->op_size++] = op;
 	stack_op(&data->sa, &data->sb, op);
 	// debug
-	if (1)
+	if (0)
 	{
 		ft_printf("%s\nA: ", stack_op_name(op));
 		i = 0;
