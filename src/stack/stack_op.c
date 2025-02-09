@@ -9,10 +9,11 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "libs/ft_printf/src/ft_printf.h"
-#include "push_swap.h"
+#include <ft_printf.h>
 #include "stack.h"
 #include <stdint.h>
+
+void	*ft_memcpy(void *dest, const void *src, size_t n);
 
 /* The swap operator */
 static inline void	swap_impl(const struct s_stack *s)

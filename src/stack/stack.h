@@ -4,7 +4,9 @@
  * The instructions set requires underlying stacks to function. They are called
  * `stacks` however they act as double-ended queue because of the
  * (reverse-)rotate operations. Since the stacks cannot grow (limited to the initial program input size),
- * The stacks are implemented 
+ * The stacks are implemented using a double-ended with a static size of 3*N (N = input size). The initial buffer is contained within
+ * [N, 2N], and will move with pushes, rotates and reverse-rotates. Once it reaches the edges, [0, N] or [2N, 3N], if will be copied back
+ * to the center position.
  *
  */
 #ifndef STACK_H
@@ -147,6 +149,8 @@ enum e_stack_op
 	 * @brief Performs RRA and RRB
 	 */
 	STACK_OP_RRR = __STACK_OP_REV_ROTATE | __STACK_OP_SEL_A | __STACK_OP_SEL_B,
+
+	STACK_OP_NOP = 0b100000,
 };
 
 /**

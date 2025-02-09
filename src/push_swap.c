@@ -9,8 +9,8 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "libs/ft_printf/src/ft_printf.h"
-#include "libs/ft_printf/src/ft_printf_bonus.h"
+#include <ft_printf.h>
+#include <ft_printf_bonus.h>
 #include "stack.h"
 #include "push_swap.h"
 #include <limits.h>
@@ -23,6 +23,33 @@ static const int	three_permuts[6][3] = {
 	{1, 2, 0},
 	{2, 0, 1},
 	{2, 1, 0},
+};
+
+static const int	four_permuts[24][4] = {
+	{0,1,2,3},
+	{0,1,3,2},
+	{0,2,1,3},
+	{0,2,3,1},
+	{0,3,1,2},
+	{0,3,2,1},
+	{1,0,2,3},
+	{1,0,3,2},
+	{1,2,0,3},
+	{1,2,3,0},
+	{1,3,0,2},
+	{1,3,2,0},
+	{2,0,1,3},
+	{2,0,3,1},
+	{2,1,0,3},
+	{2,1,3,0},
+	{2,3,0,1},
+	{2,3,1,0},
+	{3,0,1,2},
+	{3,0,2,1},
+	{3,1,0,2},
+	{3,1,2,0},
+	{3,2,0,1},
+	{3,2,1,0},
 };
 
 static const int	five_permuts[120][5] = {
@@ -155,7 +182,6 @@ void basic_tests()
 	size_t			j;
 
 	data = data_new(3);
-	data.sa.size = 3;
 	i = 0;
 	while (i < 6)
 	{
@@ -180,8 +206,32 @@ void basic_tests()
 	}
 	data_free(&data);
 
+	data = data_new(4);
+	i = 0;
+	while (i < 24)
+	{
+		data.op_size = 0;
+		data.sb.size = 0;
+		data.sa.size = 4;
+		data.sa.data = (int*)data.sa.start + data.sa.capacity;
+		ft_memcpy(data.sa.data, four_permuts[i], 4 * sizeof(int));
+		sort_stack(&data);
+		++i;
+		if (sorted(&data.sa))
+			continue;
+		ft_dprintf(2, "Failed to sort permutation of 4.\nInput : ");
+		j = 0;
+		while (j < 4)
+			ft_dprintf(2, "%d ", four_permuts[i - 1][j++]);
+		ft_dprintf(2, "\nOutput: ");
+		j = 0;
+		while (j < 4)
+			ft_dprintf(2, "%d ", data.sa.data[j++]);
+		ft_dprintf(2, "\n");
+	}
+	data_free(&data);
+
 	data = data_new(5);
-	data.sa.size = 5;
 	i = 0;
 	while (i < 120)
 	{
@@ -212,9 +262,9 @@ int main(int ac, char **av)
 	struct s_data	data;
 	size_t			i;
 
-	basic_tests();
-	return 0;
-	if (ac < 2)
+	//basic_tests();
+	//return 0;
+	if (ac == 1)
 	{
 		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
 		exit(1);

@@ -9,6 +9,7 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+#include <ft_printf.h>
 #include "push_swap.h"
 
 static void	swap(int *a, int *b)
@@ -77,19 +78,20 @@ static void	replace_with_index(struct s_stack *sa)
 
 void	sort_stack(struct s_data *data)
 {
+	replace_with_index(&data->sa);
+
 	if (sorted(&data->sa) || data->sa.size < 2)
-		return ;
-	else if (data->sa.size == 2)
-		sort_2(data);
-	else if (data->sa.size == 3)
-		sort_3(data);
-	else if (data->sa.size == 5)
-		sort_5(data);
-	else
-	{
-		replace_with_index(&data->sa);
-		sort_blk(data, (struct s_blk){BLK_A_TOP, data->sa.size});
-	}
+	//	return ;
+	//else if (data->sa.size == 2)
+	//	sort_2(data);
+	//else if (data->sa.size == 3)
+	//	sort_3(data);
+	//else if (data->sa.size == 4)
+	//	sort_4(data);
+	//else if (data->sa.size == 5)
+	//	sort_5(data);
+	//else
+		blk_sort(data);
 	//post_sort_optimization(data);
 }
 

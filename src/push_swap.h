@@ -12,36 +12,7 @@
 #ifndef PUSH_SWAP_H
 # define PUSH_SWAP_H
 
-# include "stack.h"
-
-enum	e_blk_dest
-{
-	__BLK_SEL = 0b10,
-	__BLK_A = 0b00,
-	__BLK_B = 0b10,
-
-	__BLK_POS = 0b01,
-	__BLK_BOT = 0b00,
-	__BLK_TOP = 0b01,
-
-	BLK_A_BOT = __BLK_A | __BLK_BOT,
-	BLK_A_TOP = __BLK_A | __BLK_TOP,
-	BLK_B_BOT = __BLK_B | __BLK_BOT,
-	BLK_B_TOP = __BLK_B | __BLK_TOP,
-};
-
-struct	s_blk
-{
-	enum e_blk_dest	dest;
-	size_t			size;
-};
-
-struct s_blk_split
-{
-	struct s_blk	_0;
-	struct s_blk	_1;
-	struct s_blk	_2;
-};
+# include "stack/stack.h"
 
 /**
  * @brief Stores data for the push swap operations
@@ -81,6 +52,18 @@ struct s_data	data_new(size_t sz);
 void			data_free(struct s_data *data);
 
 /**
+ * @brief Output and clears the data's ops array
+ *
+ * @param data Data to display
+ */
+void			data_dump(struct s_data *data);
+
+/**
+ * @brief Memcpy implementation from libft
+ */
+void			*ft_memcpy(void *dest, const void *src, size_t n);
+
+/**
  * @brief Performs operation `op` on `sa` and `sb` and store the result in data
  *
  * @param data The @ref s_data struct
@@ -97,34 +80,7 @@ void			op(struct s_data *data, enum e_stack_op op);
  */
 int				sorted(const struct s_stack *s);
 
-/**
- * @brief Sort a stack (@p sa) of 2 elements
- *
- * Sorting 2 elements is guaranteed to require at most 1 operation.
- *
- * @param sa Stack A
- * @param sb Stack B
- */
-void			sort_2(struct s_data *data);
-
-/**
- * @brief Sort a stack (@p sa) of 3 elements
- *
- * Sorting 3 elements is guaranteed to require at most 2 operations.
- *
- * @param sa Stack A
- * @param sb Stack B
- */
-void			sort_3(struct s_data *data);
-/**
- * @brief Sort a stack (@p sa) of 5 elements
- *
- * @param sa Stack A
- * @param sb Stack B
- */
-void			sort_5(struct s_data *data);
-
-void			sort_blk(struct s_data *data, struct s_blk blk);
+void			blk_sort(struct s_data *data);
 
 void			sort_stack(struct s_data *data);
 

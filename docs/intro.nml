@@ -1,0 +1,267 @@
+@html.page_title = Introduction to push_swap
+@html.css = ./style.css
+
+#+TABLE_OF_CONTENT Index
+
+@@style.section = {
+	"link_pos": "None",
+	"link": ["a", "b", "c"]
+}
+
+@tex.main.fontsize = 9
+@tex.main.preamble = \usepackage{xcolor, tikz, pgfplots} \\
+\usepgfplotslibrary{patchplots} \\
+\definecolor{__color1}{HTML}{d5d5d5} \\
+\everymath{\color{__color1}\displaystyle}
+@tex.main.block_prepend = \color{__color1}
+
+@<main
+function gen_values(id, length, stack)
+	local colors = { "#2D2D2D", "#1E1E1E" }
+	local graph = ""
+
+	-- Values
+	for i = 2, length do
+		if i <= #stack then
+			graph = graph
+				.. string.format([[<TR><TD PORT="%d.%d" BGCOLOR="%s" HEIGHT="25" WIDTH="28">%s</TD></TR>]], id, i - 1, colors[1 + i % 2], stack[i])
+		else
+			graph = graph
+				.. string.format([[<TR><TD PORT="%d.%d" HEIGHT="25" BORDER="0" WIDTH="28">&nbsp;</TD></TR>]], id, i - 1)
+		end
+	end
+
+	return graph
+end
+
+function gen_stack(id, length, stack)
+	local graph = string.format([[ stack_%d [label=< ]], id)
+
+	-- Stack label
+	graph = graph
+		.. [[ <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> ]]
+		.. string.format([[ <TR><TD PORT="title.%d" HEIGHT="25" BORDER="0"><FONT POINT-SIZE="14">%s</FONT></TD></TR> ]], id, stack[1])
+
+	 -- Values
+	graph = graph .. gen_values(id, length, stack)
+
+	graph = graph
+		.. [[ </TABLE> >] ]]
+	return graph
+end
+
+function gen_stacks(stacks)
+	local graph = [[
+		digraph ComputerStack {
+			bgcolor=transparent
+			node [shape=none, fontcolor=white] ]]
+
+	-- Find longest stack
+	local longest = 0
+	for k, stack in pairs(stacks) do
+		if longest < #stack then
+			longest = #stack
+		end
+	end
+	
+	local graph_rank = [[{rank=same;]]
+	for k, stack in pairs(stacks) do
+		graph = graph .. gen_stack(k, longest, stack)
+
+
+		graph_rank = graph_rank
+			.. string.format(" stack_%s", k)
+	end
+
+	graph = graph
+		.. graph_rank .. "}}"
+	return graph
+end
+
+function g_stack(stacks)
+	nml.graphviz.push("dot", "100%", gen_stacks(stacks))
+end
+
+function g_stacks(label, first, second)
+	local graph = [[
+		digraph ComputerStacks {
+			bgcolor=transparent
+			node [shape=none, fontcolor=white]
+			]]
+
+	-- Find longest stack
+	local longest = 0
+	for k, stack in pairs(first) do
+		if longest < #stack then
+			longest = #stack
+		end
+	end
+	for k, stack in pairs(second) do
+		if longest < #stack then
+			longest = #stack
+		end
+	end
+
+	local id = 1;
+	local rank = [[{rank=same;]]
+
+	-- Left cluster
+	graph = graph .. [[ subgraph cluster_left { label="" ]]
+	for k, stack in pairs(first) do
+		graph = graph .. gen_stack(id, longest, stack)
+		rank = rank
+			.. string.format(" stack_%s", id)
+		id = id + 1
+	end
+	graph = graph .. [[ } ]]
+
+	local first_right = id
+
+	-- Right cluster
+	graph = graph .. [[ subgraph cluster_right { label="" ]]
+	for k, stack in pairs(second) do
+		graph = graph .. gen_stack(id, longest, stack)
+		rank = rank
+			.. string.format(" stack_%s", id)
+		id = id + 1
+	end
+	graph = graph .. [[ } ]]
+
+	graph = graph
+		.. string.format([[ stack_%d -> stack_%d [color=gray, label="%s", fontcolor=white, penwidth=2, ltail=cluster_left_inner, lhead=cluster_right_inner, labelloc=b]; ]], first_right - 1, first_right, label)
+
+		.. rank .. "}"
+		.. "}"
+	
+	nml.graphviz.push("dot", "100%", graph)
+end
+>@
+
+# Introduction
+
+*push_swap* is a sorting problem, using a state machine. The state machine requires two 'stacks' to operate and accepts a limited sets of instructions. To get the maximal ranking for this project, you must sort 500 random integers under 4500 instructions. As it stands out, $500 * \log_2{500} \approx 4482$ therefore push_swap will most likely require a `O(n \* log n)` solution.
+
+# Data structure
+
+The original problem mentions the use of two stacks. However they differ from traditional stacks problem, by having rotates operations.
+
+If you try to do it with a stack, you'll find that some operations become expensive. For instance, every rotate operation will require
+you to ``C, memmove(&stack[1], &stack[0], size-1)`` your stack, in order to
+move all elements 1 up to make space for the bottom element.
+
+With this information in mind, there are quite a number of data structures that would work for this problem. One could use a (doubly) linked-list, they would most certainly work, but be extra painful to deal with later. I found that a double-ended-queue (deque for short) would be more suited for this task. Since adding/removing at their fronts/backs can be implemented very efficiently.
+There's a slight twist to this problem, as we already know the maximum size required for our 'stacks'.
+
+Therefore, I've implemented my deque using a constant buffer of size $3 \times N$ where $N$ is the input size. The actual buffer that we use is the $ [N,\, 2\times N]$ window. This window has free space it can move inside of. A rotate moves the window 1 down, while a reverse rotate moves it 1 up. When the window has no more space to move into, it is ``C, memcpy``ed to it's original position.
+
+As the buffer has size $3 \times N$, the expensive ``C, memcpy`` happens once every $N$ rotates or reverse-rotates. Which amortizes it's cost, rendering the add/remove to front/back operations `O(1)`.
+
+# Instruction set
+
+Here are the instructions for our state machine:
+
+#+LAYOUT_BEGIN Split
+#+LAYOUT_BEGIN Centered
+**pa**
+#+LAYOUT_END
+Takes the top element of A and push it to B:
+%< g_stacks("pa", { {"A", 1, 2, 3}, {"B", "", "", ""} }, { {"A", 2, 3, ""}, {"B", 1, "", ""} })>%
+
+#+LAYOUT_NEXT
+
+#+LAYOUT_BEGIN Centered
+**pb**
+
+Takes the top element of B and push it to A:
+#+LAYOUT_END
+%< g_stacks("pb", { {"A", "2", "", "" }, {"B", 1, 3, ""} }, { {"A", 1, 2, ""}, {"B", 3, "", ""} })>%
+#+LAYOUT_END
+
+#+LAYOUT_BEGIN Split
+#+LAYOUT_BEGIN Centered
+**sa**
+
+Swap A's top two elements:
+#+LAYOUT_END
+%< g_stacks("sa", { {" "}, {"A", 1, 2, 3} }, { {"A", 2, 1, 3}, {" "}, })>%
+
+#+LAYOUT_NEXT
+
+#+LAYOUT_BEGIN Centered
+**sb**
+
+Swap B's top two elements:
+#+LAYOUT_END
+%< g_stacks("sb", { {" "}, {"B", 1, 3, ""} }, { {"B", 3, 1, ""}, {" "}, })>%
+#+LAYOUT_END
+
+#+LAYOUT_BEGIN Split
+#+LAYOUT_BEGIN Centered
+**ss**
+
+Performs **sa** and **sb**:
+#+LAYOUT_END
+%< g_stacks("ss", { {"A", "2", "4", "", ""}, {"B", 1, 3, "", ""} }, { {"A", 4, "2", "", ""}, {"B", 3, 1, "", ""} })>%
+
+#+LAYOUT_NEXT
+
+#+LAYOUT_BEGIN Centered
+**ra**
+
+Rotates A topwise:
+#+LAYOUT_END
+%< g_stacks("ra", { {" "}, {"A", "1", "2", "3" } }, { {"A", "2", "3", "1"}, {" "}, })>%
+#+LAYOUT_END
+
+#+LAYOUT_BEGIN Split
+#+LAYOUT_BEGIN Centered
+**rb**
+
+Rotates B topwise:
+#+LAYOUT_END
+%< g_stacks("rb", { {" "}, {"B", "2", "1", "" } }, { {"B", "1", "2", ""}, {" "}, })>%
+
+#+LAYOUT_NEXT
+
+#+LAYOUT_BEGIN Centered
+**rr**
+
+Performs **ra** and **rb**:
+#+LAYOUT_END
+%< g_stacks("rr", { {"A", "2", "4", "5", "", ""}, {"B", 1, 3, "", "", ""} }, { {"A", 4, "5", 2, "", ""}, {"B", 3, 1, "", "", ""} })>%
+#+LAYOUT_END
+
+#+LAYOUT_BEGIN Split
+#+LAYOUT_BEGIN Centered
+**rra**
+
+Rotates A bottomwise:
+#+LAYOUT_END
+%< g_stacks("rra", { {" "}, {"A", "2", "1", "3" } }, { {"A", "3", "2", "1"}, {" "} })>%
+
+#+LAYOUT_NEXT
+
+#+LAYOUT_BEGIN Centered
+**rrb**
+
+Rotates B bottomwise:
+#+LAYOUT_END
+%< g_stacks("rrb", { {" "}, {"B", "1", "3", "2"} }, { {"B", 2, 1, 3}, {" "} })>%
+#+LAYOUT_END
+
+#+LAYOUT_BEGIN Split
+#+LAYOUT_BEGIN Centered
+**rrr**
+
+Performs **rra** and **rrb**:
+#+LAYOUT_END
+%< g_stacks("rrr", { {"A", "2", "4", "5", "", ""}, {"B", 1, 3, "", "", ""} }, { {"A", 5, "2", 4, "", ""}, {"B", 3, 1, "", "", ""} })>%
+
+#+LAYOUT_NEXT
+
+#+LAYOUT_END
+
+# Algorithm
+
+:: TODO: REF
+The basis of the algorithm is a 3-location stack-based quick sort.

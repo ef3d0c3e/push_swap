@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   args_char.c                                        :+:      :+:    :+:   */
+/*   push_swap_data.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -9,20 +9,33 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "printf_args.h"
-#include <unistd.h>
+#include <ft_printf.h>
+#include "push_swap.h"
 
-int	__printf_print_char(int fd, struct s_printf_fmt *fmt, unsigned char c)
+struct s_data	data_new(size_t sz)
 {
-	int	w;
+	return ((struct s_data){
+		.sa = stack_new(sz),
+		.sb = stack_new(sz),
+		.ops = NULL,
+		.op_size = 0,
+		.op_cap = 0,
+	});
+}
 
-	if (!fmt)
-		return (write(fd, &c, 1));
-	w = 0;
-	if (fmt->padding == PRINTF_PADDING_LEFT)
-		w += __printf_pad(fd, ' ', fmt->width
-				- __printf_max(1, fmt->precision));
-	w += write(fd, &c, 1);
-	w += __printf_pad(fd, ' ', fmt->width - w);
-	return (w);
+void	data_free(struct s_data *data)
+{
+	stack_free(&data->sa);
+	stack_free(&data->sb);
+	free(data->ops);
+}
+
+void	data_dump(struct s_data *data)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < data->op_size)
+		ft_printf("%s\n", stack_op_name(data->ops[i++]));
+	data->op_size = 0;
 }

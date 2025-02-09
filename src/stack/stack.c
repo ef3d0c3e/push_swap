@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "stack.h"
-#include "libs/ft_printf/src/ft_printf_bonus.h"
+#include <ft_printf_bonus.h>
 
 struct s_stack	stack_new(size_t capacity)
 {
