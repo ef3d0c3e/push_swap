@@ -10,8 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <ft_printf.h>
-#include <ft_printf_bonus.h>
-#include "stack.h"
+#include "stack/stack.h"
 #include "push_swap.h"
 #include <limits.h>
 #include <stddef.h>

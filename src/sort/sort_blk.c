@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "push_swap.h"
 
+/*
 static void move_to(struct s_data *data, enum e_blk_dest dest)
 {
 	if (dest == BLK_B_BOT)
@@ -86,3 +87,4 @@ void	blk_sort(struct s_data *data)
 	blk.size = data->sa.size;
 	rec_sort_blk(data, &blk);
 }
+*/

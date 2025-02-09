@@ -3,26 +3,24 @@ CC     := gcc
 CFLAGS := -Wall -Wextra -Og -ggdb -fsanitize=address
 
 SOURCES := \
-   		src/stack/stack.c \
-   		src/stack/stack_op.c \
-		src/blk.c \
-   		src/push_swap.c \
-   		src/push_swap_data.c \
-   		src/sort_blk.c \
-   		src/sort.c \
-   		src/sort_small.c \
-   		src/util.c
+	src/state.c \
+	src/blk/split.c \
+	src/blk/move.c \
+	src/stack/stack.c \
+	src/stack/stack_op.c \
+	src/util.c \
+	src/push_swap.c \
+	src/sort/sort.c \
+	src/sort/sort_small.c \
+	src/sort/sort_blk.c
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))
 
 # Printf library
 LIB_PRINTF_PATH := libs/ft_printf
-LIB_PRINTF_INC := libs/ft_printf/src
+LIB_PRINTF_INC := libs/ft_printf/includes
 LIB_PRINTF := libftprintf.a
 
-$(LIB_PRINTF_PATH)/$(LIB_PRINTF):
-	$(MAKE) -C $(LIB_PRINTF_PATH) bonus
-	
 IFLAGS := -I $(LIB_PRINTF_INC)
 LFLAGS := $(LIB_PRINTF_PATH)/$(LIB_PRINTF)
 
@@ -33,6 +31,9 @@ objs/%.o : %.c
 $(NAME): $(OBJECTS) $(LIB_PRINTF_PATH)/$(LIB_PRINTF)
 	$(CC) $(IFLAGS) $(CFLAGS) \
 		$(OBJECTS) $(LFLAGS) -o $(NAME)
+
+$(LIB_PRINTF_PATH)/$(LIB_PRINTF):
+	$(MAKE) -C $(LIB_PRINTF_PATH)
 
 .PHONY: all
 all: $(NAME)

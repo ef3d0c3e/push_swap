@@ -3,26 +3,27 @@
  *
  * The instructions set requires underlying stacks to function. They are called
  * `stacks` however they act as double-ended queue because of the
- * (reverse-)rotate operations. Since the stacks cannot grow (limited to the initial program input size),
- * The stacks are implemented using a double-ended with a static size of 3*N (N = input size). The initial buffer is contained within
- * [N, 2N], and will move with pushes, rotates and reverse-rotates. Once it reaches the edges, [0, N] or [2N, 3N], if will be copied back
- * to the center position.
- *
+ * (reverse-)rotate operations. Since the stacks cannot grow (limited to the
+ * initial program input size), the stacks are implemented using a double-ended
+ * with a static size of 3*N (N = input size). The initial buffer is contained
+ * within [N, 2N], and will move with pushes, rotates and reverse-rotates. Once
+ * it reaches the edges, [0, N] or [2N, 3N], if will be copied back to the 
+ * center position.
  */
 #ifndef STACK_H
-#define STACK_H
+# define STACK_H
 
-#include <stdlib.h>
+# include <stdlib.h>
 
 /**
  * @brief The stack data structure
  */
 struct s_stack
 {
-	const int* start;
-	int* data;
-	size_t size;
-	size_t capacity;
+	const int	*start;
+	int			*data;
+	size_t		size;
+	size_t		capacity;
 };
 
 /**
@@ -41,7 +42,17 @@ stack_new(size_t capacity);
  * @param s Stack to free
  */
 void
-stack_free(struct s_stack* s);
+stack_free(struct s_stack *s);
+
+/**
+ * @brief Determies whether a stack is sorted
+ *
+ * @param s Stack to check for sorted
+ *
+ * @returns 1 If `s` is sorted, 0 otherwise
+ */
+int
+stack_sorted(const struct s_stack *s);
 
 /**
  * @brief All defined stack operations
@@ -104,7 +115,6 @@ enum e_stack_op
 	 * @brief Operators bitmask
 	 */
 	__STACK_OPERATOR = 0b11100,
-
 	/**
 	 * @brief Swaps A's top 2 elements
 	 */
@@ -149,19 +159,8 @@ enum e_stack_op
 	 * @brief Performs RRA and RRB
 	 */
 	STACK_OP_RRR = __STACK_OP_REV_ROTATE | __STACK_OP_SEL_A | __STACK_OP_SEL_B,
-
-	STACK_OP_NOP = 0b100000,
 };
 
-/**
- * @brief Utility to get the name of a stack operation
- *
- * @param op The @ref stack_op to get the name of
- *
- * @returns The name of `op`
- */
-const char*
-stack_op_name(enum e_stack_op op);
 /**
  * @brief Applies a @ref stack_op over stack A's and B's
  *
@@ -174,6 +173,15 @@ stack_op_name(enum e_stack_op op);
  * @param op Operation to apply
  */
 void
-stack_op(struct s_stack* sa, struct s_stack* sb, enum e_stack_op op);
+stack_op(struct s_stack *sa, struct s_stack *sb, enum e_stack_op op);
+
+/**
+ * @brief Utility to get the name of a stack operation
+ *
+ * @param op The @ref stack_op to get the name of
+ *
+ * @returns The name of `op`
+ */
+const char	*stack_op_name(enum e_stack_op op);
 
 #endif // STACK_H

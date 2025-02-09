@@ -75,7 +75,7 @@ void	stack_op(struct s_stack *sa,
 {
 	const uint8_t			operand = op & __STACK_OPERAND;
 	const uint8_t			operator = op & __STACK_OPERATOR;
-	struct s_stack			*ss[2] = {sa, sb};
+	struct s_stack			*ss[3] = {sa, sb};
 	size_t					i;
 
 	i = 0;

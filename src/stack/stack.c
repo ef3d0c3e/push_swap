@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "stack.h"
-#include <ft_printf_bonus.h>
+#include <ft_printf.h>
 
 struct s_stack	stack_new(size_t capacity)
 {
@@ -52,4 +52,20 @@ const char	*stack_op_name(enum e_stack_op op)
 	};
 
 	return (names[op]);
+}
+
+int	stack_sorted(const struct s_stack *s)
+{
+	size_t	i;
+
+	if (s->size < 2)
+		return (1);
+	i = 1;
+	while (i < s->size)
+	{
+		if (s->data[i - 1] > s->data[i])
+			return (0);
+		++i;
+	}
+	return (1);
 }

@@ -81,7 +81,7 @@ void	sort_stack(struct s_data *data)
 	replace_with_index(&data->sa);
 
 	if (sorted(&data->sa) || data->sa.size < 2)
-	//	return ;
+		return ;
 	//else if (data->sa.size == 2)
 	//	sort_2(data);
 	//else if (data->sa.size == 3)
@@ -91,7 +91,7 @@ void	sort_stack(struct s_data *data)
 	//else if (data->sa.size == 5)
 	//	sort_5(data);
 	//else
-		blk_sort(data);
+		//blk_sort(data);
 	//post_sort_optimization(data);
 }
 
