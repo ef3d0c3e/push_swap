@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <ft_printf.h>
+#include "sort/sort.h"
 #include "stack/stack.h"
 #include "push_swap.h"
 #include <limits.h>
@@ -206,20 +207,20 @@ void basic_tests()
 	}
 	state_free(&state);
 
-	/*
-	state = state_new(4);
 	i = 0;
 	while (i < 24)
 	{
-		state.op_size = 0;
-		state.sb.size = 0;
-		state.sa.size = 4;
+		state = state_new(4);
 		state.sa.data = (int*)state.sa.start + state.sa.capacity;
 		ft_memcpy(state.sa.data, four_permuts[i], 4 * sizeof(int));
+		j = 0;
 		sort_stack(&state);
 		++i;
 		if (stack_sorted(&state.sa))
+		{
+			state_free(&state);
 			continue;
+		}
 		ft_dprintf(2, "Failed to sort permutation of 4.\nInput : ");
 		j = 0;
 		while (j < 4)
@@ -229,22 +230,23 @@ void basic_tests()
 		while (j < 4)
 			ft_dprintf(2, "%d ", state.sa.data[j++]);
 		ft_dprintf(2, "\n");
+		state_free(&state);
 	}
-	state_free(&state);
 
-	state = state_new(5);
 	i = 0;
 	while (i < 120)
 	{
-		state.op_size = 0;
-		state.sb.size = 0;
-		state.sa.size = 5;
+		state = state_new(5);
 		state.sa.data = (int*)state.sa.start + state.sa.capacity;
 		ft_memcpy(state.sa.data, five_permuts[i], 5 * sizeof(int));
+		j = 0;
 		sort_stack(&state);
 		++i;
 		if (stack_sorted(&state.sa))
+		{
+			state_free(&state);
 			continue;
+		}
 		ft_dprintf(2, "Failed to sort permutation of 5.\nInput : ");
 		j = 0;
 		while (j < 5)
@@ -254,9 +256,8 @@ void basic_tests()
 		while (j < 5)
 			ft_dprintf(2, "%d ", state.sa.data[j++]);
 		ft_dprintf(2, "\n");
+		state_free(&state);
 	}
-	state_free(&state);
-	*/
 }
 
 int main(int ac, char **av)
@@ -264,8 +265,8 @@ int main(int ac, char **av)
 	t_state	state;
 	size_t	i;
 
-	//basic_tests();
-	//return 0;
+	basic_tests();
+	return 0;
 	if (ac == 1)
 	{
 		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);

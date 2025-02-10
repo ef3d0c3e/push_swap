@@ -15,8 +15,6 @@
 # include "stack/stack.h"
 #include "state.h"
 
-void			blk_sort(struct s_state *state);
-
 void			sort_stack(struct s_state *state);
 
 #endif // PUSH_SWAP_H

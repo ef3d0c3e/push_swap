@@ -14,6 +14,7 @@
 #include "../stack/stack.h"
 #include "../blk/blk.h"
 #include "../state.h"
+#include "../util.h"
 
 static void	swap(int *a, int *b)
 {
@@ -79,28 +80,6 @@ static void	replace_with_index(struct s_stack *sa)
 	free(indices);
 }
 
-void rec_sort(t_state *s, t_blk *blk)
-{
-	t_split	split;
-	size_t	i;
-
-	if (blk->size <= 3)
-	{
-		ft_printf(">sort_small():\n");
-		blk_sort_small(s, blk);
-		return;
-	}
-	split = blk_split(s, blk);
-
-	i = 0;
-	while (i < 3)
-	{
-		ft_printf("BEGIN REC %d [%d]\n", i, split.data[i].size);
-		rec_sort(s, &split.data[i]);
-		++i;
-	}
-}
-
 void	sort_stack(t_state *s)
 {
 	replace_with_index(&s->sa);
@@ -119,7 +98,7 @@ void	sort_stack(t_state *s)
 		//blk_sort(data);
 	//post_sort_optimization(data);
 	t_blk blk = (t_blk){.dest = BLK_A_TOP, .size = s->sa.size};
-	rec_sort(s, &blk);
+	blk_sort(s, &blk);
 }
 
 

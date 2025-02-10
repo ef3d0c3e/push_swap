@@ -8,6 +8,7 @@ src/blk/split.c \
 src/blk/blk_sort.c \
 src/blk/blk.c \
 src/blk/move.c \
+src/blk/blk_sort_3.c \
 src/stack/stack.c \
 src/stack/stack_op.c \
 src/util.c \
@@ -42,7 +43,8 @@ all: $(NAME)
 
 
 .PHONY: clean
-	$(RM) $(OBJECTS)
+clean:
+	$(RM) -r objs
 
 .PHONY: fclean
 fclean: clean

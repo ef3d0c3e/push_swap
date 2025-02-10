@@ -4,6 +4,7 @@
 # include <stdlib.h>
 
 typedef struct s_state	t_state;
+typedef struct s_stack	t_stack;
 
 /**
  * @brief Destination for blocks
@@ -45,6 +46,16 @@ int	blk_value(const t_state *s, const t_blk *blk, size_t pos);
 int	blk_max(const t_state *s, const t_blk *blk);
 
 /**
+ * @brief Gets the stack from a destination
+ */
+const t_stack	*blk_stack(const t_state *s, enum e_blk_dest dest);
+
+/**
+ * @brief Checks if a block is absolutely sorted
+ */
+int	blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset);
+
+/**
  * @brief Split of three blocks created from single block
  */
 typedef union u_split
@@ -75,17 +86,34 @@ t_split	blk_split(t_state *state, t_blk *blk);
  * @param to To destination
  *
  * Move table:
- * From\To |  TOP A  |  TOP B  |  BOT A  |  BOT B  |
- * | TOP A |    x    |   pb    |    ra   | pb   rb |
- * | TOP B | pa      |    x    | pa   ra |   rb    |
- * | BOT A |  ra     | rra  pb |    x    |rra pb rb|
- * | BOT B | rrb  pa |  rb     |rrb pa ra|    x    |
+ * From\To |  TOP A  |  BOT A  | TOP B  |  BOT B  |
+ * | TOP A |    x    |    ra   |  pb    | pb   rb |
+ * | BOT A |  rra    |    x    |rra  pb |rra pb rb|
+ * | TOP B | pa      | pa   ra |   x    |   rb    |
+ * | BOT B | rrb  pa |rrb pa ra| rb     |    x    |
  */
 void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
+
+/**
+ * @brief Sorts two elements
+ */
+void	blk_sort_2(t_state *state, t_blk *blk);
+
+/**
+ * @brief Sorts three elements
+ */
+void	blk_sort_3(t_state *state, t_blk *blk);
+
+/**
+ * @brief Sorts three elements on A top or B top. Order is reversed for B
+ */
+void	blk_sort_3_top_for_a(t_state *state, t_blk *blk);
 
 /**
  * @brief Sorts a small number elements on the block
  */
 void	blk_sort_small(t_state *state, t_blk *blk);
+
+void	blk_sort(t_state *state, t_blk *blk);
 
 #endif // BLK_H
