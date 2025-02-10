@@ -5,6 +5,17 @@
 # include "stack/stack.h"
 
 /**
+ * @brief Save of the state
+ */
+typedef struct s_savestate
+{
+	struct s_stack	sa;
+	struct s_stack	sb;
+	enum e_stack_op	*ops;
+	size_t			id;
+}	t_savestate;
+
+/**
  * @brief Stores state of the push_swap instance
  */
 typedef struct s_state
@@ -31,6 +42,11 @@ typedef struct s_state
 	 * @brief Capacity of the `ops` array
 	 */
 	size_t			op_cap;
+
+
+	t_savestate		*saves;
+	size_t			saves_size;
+	size_t			saves_cap;
 }	t_state;
 
 /**
@@ -53,6 +69,13 @@ void			state_free(t_state *state);
  * @param data Data to display
  */
 void			state_dump(t_state *state);
+
+/**
+ * @brief Constructs state from saved state
+ *
+ * @warn This will not clone stacks, therefore the savestate will become unusable.
+ */
+t_state			state_savestate(t_savestate	*save);
 
 /**
  * @brief Generates two pivots for splitting a block

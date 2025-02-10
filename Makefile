@@ -15,7 +15,8 @@ src/stack/stack_op.c \
 src/util.c \
 src/push_swap.c \
 src/sort/sort.c \
-src/sort/sort_small.c
+src/sort/sort_small.c \
+src/opti/opti.c
 
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))

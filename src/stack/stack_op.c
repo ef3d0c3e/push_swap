@@ -11,12 +11,11 @@
 /* ************************************************************************** */
 #include <ft_printf.h>
 #include "stack.h"
-#include <stdint.h>
-
-void	*ft_memcpy(void *dest, const void *src, size_t n);
+#include "../util.h"
 
 /* The swap operator */
-static inline void	swap_impl(const struct s_stack *s)
+static inline void	swap_impl(
+		const struct s_stack *s)
 {
 	const int	tmp = s->data[0];
 
@@ -25,13 +24,15 @@ static inline void	swap_impl(const struct s_stack *s)
 }
 
 /* The rotate operator */
-static inline void	rot_impl(struct s_stack *s)
+static inline void	rot_impl(
+		struct s_stack *s)
 {
 	const int	tmp = s->data[0];
 
 	if (s->data + 1 >= s->start + 2 * s->capacity)
 	{
-		ft_memcpy((int *)s->start + s->capacity, s->data, s->size * sizeof(int));
+		ft_memcpy((int *)s->start + s->capacity, s->data,
+			s->size * sizeof(int));
 		s->data = (int *)s->start + s->capacity;
 	}
 	++s->data;
@@ -39,13 +40,15 @@ static inline void	rot_impl(struct s_stack *s)
 }
 
 /* The reverse rotate operator */
-static void	rrot_impl(struct s_stack *s)
+static inline void	rrot_impl(
+		struct s_stack *s)
 {
 	const int	tmp = s->data[s->size - 1];
 
 	if (s->data - 1 <= s->start)
 	{
-		ft_memcpy((int *)s->start + s->capacity, s->data, s->size * sizeof(int));
+		ft_memcpy((int *)s->start + s->capacity,
+			s->data, s->size * sizeof(int));
 		s->data = (int *)s->start + s->capacity;
 	}
 	--s->data;
@@ -53,11 +56,14 @@ static void	rrot_impl(struct s_stack *s)
 }
 
 /* Push implementation */
-static void push_impl(struct s_stack *from, struct s_stack *to)
+static inline void	push_impl(
+		struct s_stack *from,
+		struct s_stack *to)
 {
 	if (to->data - 1 <= to->start)
 	{
-		ft_memcpy((int *)to->start + to->capacity, to->data, to->size * sizeof(int));
+		ft_memcpy((int *)to->start + to->capacity,
+			to->data, to->size * sizeof(int));
 		to->data = (int *)to->start + to->capacity;
 	}
 	--to->data;
@@ -67,13 +73,14 @@ static void push_impl(struct s_stack *from, struct s_stack *to)
 	--from->size;
 }
 
-void	stack_op(struct s_stack *sa,
+void	stack_op(
+		struct s_stack *sa,
 		struct s_stack *sb,
 		enum e_stack_op op)
 {
-	const uint8_t			operand = op & __STACK_OPERAND;
-	const uint8_t			operator = op & __STACK_OPERATOR;
-	struct s_stack			*ss[3] = {sa, sb};
+	struct s_stack *const	ss[2] = {sa, sb};
+	const enum e_stack_op	operand = op & __STACK_OPERAND;
+	const enum e_stack_op	operator = op & __STACK_OPERATOR;
 	size_t					i;
 
 	i = 0;

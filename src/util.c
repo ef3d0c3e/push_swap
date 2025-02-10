@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <ft_printf.h>
 #include "push_swap.h"
+#include "state.h"
+#include "stack/stack.h"
 
 /* memcopy from my libft */
 void	*ft_memcpy(void *dest, const void *src, size_t n)
@@ -32,6 +34,33 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 		*(wd++) = *(ws++);
 
 	return (dest);
+}
+
+static inline void	savestate(t_state *s)
+{
+	t_savestate	*new;
+
+	if (!s->saves || s->saves_cap == s->saves_size)
+	{
+		new = malloc(sizeof(t_savestate) * ((s->saves_cap + !s->saves_cap) << 1));
+		if (!new)
+		{
+			ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
+			exit(1);
+		}
+		ft_memcpy(new, s->saves, sizeof(t_savestate) * s->saves_size);
+		free(s->saves);
+		s->saves = new;
+		s->saves_cap = (s->saves_cap + !s->saves_cap) << 1;
+	}
+
+	s->saves[s->saves_size] = (t_savestate){
+		.sa = stack_clone(&s->sa),
+		.sb = stack_clone(&s->sb),
+		.ops = s->ops,
+		.id = s->saves_size,
+	};
+	++s->saves_size;
 }
 
 void	op(t_state *state, enum e_stack_op op)
@@ -56,6 +85,8 @@ void	op(t_state *state, enum e_stack_op op)
 	}
 	state->ops[state->op_size++] = op;
 	stack_op(&state->sa, &state->sb, op);
+	savestate(state);
+
 	// debug
 	if (0)
 	{

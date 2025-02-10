@@ -1,5 +1,21 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   stack.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+#ifndef STACK_H
+# define STACK_H
+
+# include <stdlib.h>
+
 /**
- * @file Stack structure implementation
+ * @brief The stack data structure
  *
  * The instructions set requires underlying stacks to function. They are called
  * `stacks` however they act as double-ended queue because of the
@@ -9,14 +25,6 @@
  * within [N, 2N], and will move with pushes, rotates and reverse-rotates. Once
  * it reaches the edges, [0, N] or [2N, 3N], if will be copied back to the 
  * center position.
- */
-#ifndef STACK_H
-# define STACK_H
-
-# include <stdlib.h>
-
-/**
- * @brief The stack data structure
  */
 struct s_stack
 {
@@ -43,6 +51,15 @@ stack_new(size_t capacity);
  */
 void
 stack_free(struct s_stack *s);
+
+/**
+ * @brief Clones the stack
+ *
+ * @param s Stack to clone
+ * @returns A writeable copy of s
+ */
+struct s_stack
+stack_clone(const struct s_stack *s);
 
 /**
  * @brief Determies whether a stack is sorted
@@ -74,7 +91,7 @@ stack_sorted(const struct s_stack *s);
  * # Implementation
  *
  * All operations are trivially O(1), except for rotations. By using a deque as
- * the stack, we can amortize the expensive `memcopy` that would happens around
+ * the stack, we can amortize the expensive `memcopy` that will happens around
  * every N rotate operations. Therefore rotations are amortized O(1).
  */
 enum e_stack_op

@@ -141,18 +141,22 @@ end
 
 *push_swap* is a sorting problem, using a state machine. The state machine requires two 'stacks' to operate and accepts a limited sets of instructions. To get the maximal ranking for this project, you must sort 500 random integers under 4500 instructions. As it stands out, $500 * \log_2{500} \approx 4482$ therefore push_swap will most likely require a `O(n \* log n)` solution.
 
-# Data structure
+# The stacks
 
-The original problem mentions the use of two stacks. However they differ from traditional stacks problem, by having rotates operations.
+The original problem mentions the use of two stacks. While they can be represented as stacks, the instructions lets us manipulate them as if they were 'circular'.
+In fact the rotate and reverse rotate operation lets us access the bottom of the stack easily.
+You find that to push a value to B's bottom translates to `pb rb`.
+Which in traditional stack problems would require `O(n)` operations.
 
-If you try to do it with a stack, you'll find that some operations become expensive. For instance, every rotate operation will require
-you to ``C, memmove(&stack[1], &stack[0], size-1)`` your stack, in order to
-move all elements 1 up to make space for the bottom element.
+If you decide to implement the stacks as contiguous arrays, you'll find that
+some operations become very expensive. For instance, every rotate operation
+will require you to ``C, memmove(&stack[1], &stack[0], size-1)`` your stack,
+in order to move all elements 1 up to make space for the bottom element.
 
-With this information in mind, there are quite a number of data structures that would work for this problem. One could use a (doubly) linked-list, they would most certainly work, but be extra painful to deal with later. I found that a double-ended-queue (deque for short) would be more suited for this task. Since adding/removing at their fronts/backs can be implemented very efficiently.
+With this information in mind, there are quite a number of data structures that would work for this problem. One could use a circular-doubly-linked-list, they would most certainly work, but be extra painful to deal with later. I found that a double-ended-queue (deque for short) would be more suited for this task. Since adding/removing at their fronts/backs can be implemented very efficiently.
 There's a slight twist to this problem, as we already know the maximum size required for our 'stacks'.
 
-Therefore, I've implemented my deque using a constant buffer of size $3 \times N$ where $N$ is the input size. The actual buffer that we use is the $ [N,\, 2\times N]$ window. This window has free space it can move inside of. A rotate moves the window 1 down, while a reverse rotate moves it 1 up. When the window has no more space to move into, it is ``C, memcpy``ed to it's original position.
+Therefore, I've implemented my deque using a constant buffer of size $3 \times N$, where $N$ is the input size. The actual usable buffer is the $ [N,\, 2\times N]$ window. This window has free space it can move inside of. A rotate moves the window 1 down, while a reverse rotate moves it 1 up. When the window has no more space to move into, it is ``C, memcpy``ed to it's original position.
 
 As the buffer has size $3 \times N$, the expensive ``C, memcpy`` happens once every $N$ rotates or reverse-rotates. Which amortizes it's cost, rendering the add/remove to front/back operations `O(1)`.
 
@@ -264,6 +268,22 @@ Performs **rra** and **rrb**:
 ## Simulation
 
 In order to simulate outgoing instructions (when sorting) and incoming instructions (when running the checker), I encoded the instructions in a simple format:
+#+LAYOUT_BEGIN Centered
+``C, |3bits operator selector|2bits stack selector|``
+#+LAYOUT_END
+
+For the stack selector:
+ * ``C, 01`` means stack `A`
+ * ``C, 10`` means stack `B`
+ * ``C, 11`` means both stacks
+
+For the operator selector:
+ * ``C, 001`` means swap
+ * ``C, 010`` means push
+ * ``C, 011`` means rotate
+ * ``C, 100`` means reverse-rotate
+
+Therefore, operation `pb` is encoded in the following way: ``C, (0b101 << 2) | 0b10``, ``C, 0b101`` represents the push operator, and ``C, 0b10`` represents stack `B`.
 
 # Algorithm
 
@@ -405,13 +425,16 @@ From those two states, I'd like to be able to reconstruct the string of instruct
 
 I'll try to write down the problem so you can see it better.
 When we run the sorting program and looks at the generated instructions.
-I call $F_n$, the state of the program after executing $n$ instruction.
+I call $F_n = (A_n, B_n)$, the state of the program after executing $n$ instruction.
 When $F_n$ is combined with the n-th instruction, $OP_n$, we obtain the next state: $F_n \circ OP_n = F_{n + 1}$.
 This operation is repeated until the program is out of instructions, after which it halts.
 
+From having already found a push_swap solution, we can construct $M = m_1 \circ \cdots \circ m_k$ such that $F_n \circ M = F_{n+k}$.
+It would be nice to have the tools to analyze M in order to determine what changes are required to go from $F_n$ to $F_{n+k}$.
+
 Our goal is, given two states: $F_n$ and $F_{n + k}$, find $S = s_1 \circ \cdots \circ s_p$ such that:
- * $F_n  \circ S = F_{n+k}$ meaning that $S$ is a path that goes from $F_n$ to $F_{n + k.}$
- * $p < k$ meaning that the path $S$ is smaller than the original path.
+ - $F_n  \circ S = F_{n+k}$ meaning that $S$ is a path that goes from $F_n$ to $F_{n + k}$
+ - $p < k$ meaning that the path $S$ is smaller than the original path $M$
 
 #+LAYOUT_BEGIN Centered
 Constructing the ``C, distance(state1, state2)`` function.

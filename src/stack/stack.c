@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "stack.h"
+#include "../util.h"
 #include <ft_printf.h>
 
 struct s_stack	stack_new(size_t capacity)
@@ -33,6 +34,24 @@ struct s_stack	stack_new(size_t capacity)
 void	stack_free(struct s_stack *s)
 {
 	free((void *)s->start);
+}
+
+struct s_stack	stack_clone(const struct s_stack *s)
+{
+	int *start;
+
+	start = malloc(3 * s->capacity * sizeof(int));
+	if (!start)
+	{
+		ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
+		exit(1);
+	}
+	return ((struct s_stack){
+		.start = start,
+		.data = ft_memcpy(start + s->capacity, s->data, s->size * sizeof(int)),
+		.size = s->size,
+		.capacity = s->capacity,
+	});
 }
 
 const char	*stack_op_name(enum e_stack_op op)
