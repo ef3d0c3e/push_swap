@@ -261,21 +261,23 @@ Performs **rra** and **rrb**:
 
 #+LAYOUT_END
 
-Technically, you'd want to use the `rr`, `ss` and `rrr` instructions where possible. However, there's a general optimization technique &{opti_state} that will do it for you, so you don't have to worry about using them in the first place.
+## Simulation
+
+In order to simulate outgoing instructions (when sorting) and incoming instructions (when running the checker), I encoded the instructions in a simple format:
 
 # Algorithm
 
 :: TODO: REF
 The basis of the algorithm is a 3-location stack-based quick sort.
 
-## Sorting
+## Small sorting
 
 I handle base case sorting for all blocks with ``C, size <= 3``. I have manually built tables to sort from any block to A's top.
 
 For ``C, size == 3``, that makes $3! = 4$ cases, for each possible destination (top A, bot B, etc..).
 So in total 24 cases for size 3. Then 8 for size 2, and 1 for size 1.
 
-Below is the code that dispatch the instructions according to every possible scenario (only for B's top and A's bot):
+#+LAYOUT_BEGIN[title=This is the code that dispatch sorting instructions\, according to every possible scenario (only for B's top and A's bot)] Spoiler
 ```C, Sample sorting table for size == 3
 	else if (blk->dest == BLK_B_TOP)
 		((void)(
@@ -295,6 +297,10 @@ Below is the code that dispatch the instructions according to every possible sce
 		|| (w > u && u > v && (op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_PB), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), op(s, STACK_OP_PA), 1))
 		|| (w > v && v > u && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB), op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), op(s, STACK_OP_PA), 1))
 	));```
+#+LAYOUT_END
+
+Another possible way to handle the 3-sort is to use the 2-sort function (which is way shorter). Then handle the special cases where the 2-sort function would not be enough.
+However there would be cases where this would generate more instructions, so I opted for the table method. Needless to say, I had to double-check, then triple-check that the values inside tables are correct.
 
 # Utility
 
@@ -341,28 +347,76 @@ void	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
 
 # Optimizations
 
-##{opti_state} State machine
+I will discuss all optimizations I have used in this section.
 
-This is a general optimization technique that works on almost all state-machine problems.
-Essentially it may happen that a string of instructions produce the same output as another (smaller) set of instructions.
+##{opti_state} Instructions
+
+The following is a general optimization technique that works on almost all state-machine problems.
+Essentially it may happen that a substring of instructions produces the same output as another (smaller) substring of instructions.
 For instance:
- * `ra rb` produces the same side effect as `rr`.
- * `ra rra` produces the same side effect as `nop`.
+ * `ra rb` produces the same side-effect as `rr`.
+ * `ra rra` produces the same side-effect as `nop`.
+By finding and replacing those substrings, we can lower the instruction count.
+However, it's a bit more complicated than that.
+
+
+Find all instructions substring that can be reduced.
+
+Essentially that would be implemented using a large table, a function would iterate over the instructions and check if a table's substring matches currently.
+The downside of this method is that it requires building a large table with all substrings that the function should replace. But once you have the table, most is already done.
+
+However, that doesn't solve the issue entirely.
+Consider the following:
+
+Your table contains these mappings: `ra rb → rr` and `rb ra → rr`.
+If the program contains the following substring: `ra ra rb rb`,
+which can be reduced to `rr rr`, it will only be reduced to `ra rr rb`,
+because the table has not enough information. If you go with this method,
+be sure to properly populate your table for the best results.
+In fact there are $^6P_3 = 20$ combinations for 3 `ra`'s and 3 `rb`'s.
+Those could be generated and hard coded into the table.
+But I'd rather have a general method that doesn't require
+a lot of preliminary work.
+
 
 ### Side-effects
 
 Each instruction will produce it's own side effects. The side effects depends on the instruction, but also on the state of the stacks.
-:: TODO para
+It is important to understand side-effects as they are useful for optimization.
+
+:: TODO
 
 Sometime it may be safe to reorder instructions, as their side effect can be contained:
-Suppose that the following program the following is valid:
-``Plain Text
-sb
-ra
-sa``
-Because `sb` is the only instruction in the program that acts on B. It is safe to reorder it anywhere in the program.
+Suppose that the following program is valid:
+#+LAYOUT_BEGIN Centered
+``Plain Text, sb ra sa``
+#+LAYOUT_END
 
+Because `sb` is the only instruction in the program that acts on B. It is safe to reorder it's execution within the program.
 Therefore the program can be simplified to the following:
-``Plain Text
-ra
-ss``
+#+LAYOUT_BEGIN Centered
+``Plain Text, ra ss``
+#+LAYOUT_END
+
+### Qantitizing side-effects
+
+Let's say I have an initial program state `state1` (instructions and stacks). I run the algorithm and end up N instructions later at `state2`.
+From those two states, I'd like to be able to reconstruct the string of instructions that is required to reach `state2` from `state1`. Eventually this functions could be tuned to never generate more instructions than what was primarly used to obtain `state2` from `state1`. However, we'd be lucky to find such a function. Because I could just ask it to find the path from original state to the answer directly. However we can get pretty close to it, thanks to one technique: **backtracking bruteforce**.
+
+I'll try to write down the problem so you can see it better.
+When we run the sorting program and looks at the generated instructions.
+I call $F_n$, the state of the program after executing $n$ instruction.
+When $F_n$ is combined with the n-th instruction, $OP_n$, we obtain the next state: $F_n \circ OP_n = F_{n + 1}$.
+This operation is repeated until the program is out of instructions, after which it halts.
+
+Our goal is, given two states: $F_n$ and $F_{n + k}$, find $S = s_1 \circ \cdots \circ s_p$ such that:
+ * $F_n  \circ S = F_{n+k}$ meaning that $S$ is a path that goes from $F_n$ to $F_{n + k.}$
+ * $p < k$ meaning that the path $S$ is smaller than the original path.
+
+#+LAYOUT_BEGIN Centered
+Constructing the ``C, distance(state1, state2)`` function.
+#+LAYOUT_END
+
+:: PROB TREE GRAPH
+
+## Optimizing quicksort
