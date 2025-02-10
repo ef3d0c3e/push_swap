@@ -3,7 +3,7 @@
 #include "../util.h"
 #include <stdint.h>
 
-void	move_blk(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
+void	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
 {
 	const uint8_t	id = (from << 2) | to;
 

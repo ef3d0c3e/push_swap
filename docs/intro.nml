@@ -265,3 +265,28 @@ Performs **rra** and **rrb**:
 
 :: TODO: REF
 The basis of the algorithm is a 3-location stack-based quick sort.
+
+## Sorting
+
+Base case sorts are handled manually by building a table with possible permutations.
+For instance, suppose we want to sort a block of size 3: $(u, v, w)$.
+There are only 6 possible scenarii:
+ - $u < v < w$
+ - $u < w < v$
+ - $v < u < w$
+ - $v < w < u$
+ - $w < u < v$
+ - $w < v < u$
+I applied this logic in order to sort from any location to `A_TOP`.
+	
+
+# Utility
+
+## Moving values
+
+Here's the table that tells us what moves are required to move values
+|From\To|  TOP A  |  TOP B  |  BOT A  |  BOT B  |
+| TOP A |    x    |   pb    |    ra   | pb   rb |
+| TOP B | pa      |    x    | pa   ra |   rb    |
+| BOT A |  ra     | rra  pb |    x    |rra pb rb|
+| BOT B | rrb  pa |  rb     |rrb pa ra|    x    |

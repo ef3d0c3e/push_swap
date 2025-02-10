@@ -3,16 +3,18 @@ CC     := gcc
 CFLAGS := -Wall -Wextra -Og -ggdb -fsanitize=address
 
 SOURCES := \
-	src/state.c \
-	src/blk/split.c \
-	src/blk/move.c \
-	src/stack/stack.c \
-	src/stack/stack_op.c \
-	src/util.c \
-	src/push_swap.c \
-	src/sort/sort.c \
-	src/sort/sort_small.c \
-	src/sort/sort_blk.c
+src/state.c \
+src/blk/split.c \
+src/blk/blk_sort.c \
+src/blk/blk.c \
+src/blk/move.c \
+src/stack/stack.c \
+src/stack/stack_op.c \
+src/util.c \
+src/push_swap.c \
+src/sort/sort.c \
+src/sort/sort_small.c
+
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))
 
@@ -40,7 +42,6 @@ all: $(NAME)
 
 
 .PHONY: clean
-clean:
 	$(RM) $(OBJECTS)
 
 .PHONY: fclean

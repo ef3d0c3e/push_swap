@@ -34,44 +34,44 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 	return (dest);
 }
 
-void	op(struct s_data *data, enum e_stack_op op)
+void	op(t_state *state, enum e_stack_op op)
 {
 	enum e_stack_op	*tmp;
 	size_t			i;
 
-	if (data->op_size >= data->op_cap)
+	if (state->op_size >= state->op_cap)
 	{
-		tmp = malloc(sizeof(op) * ((data->op_cap + !data->op_cap) << 1));
+		tmp = malloc(sizeof(op) * ((state->op_cap + !state->op_cap) << 1));
 		if (!tmp)
 		{
 			ft_dprintf(2, "Error\n");
 			exit(1);
 		}
 		i = 0;
-		while (i++ < data->op_size)
-			tmp[i - 1] = data->ops[i - 1];
-		free(data->ops);
-		data->ops = tmp;
-		data->op_cap = (data->op_cap + !data->op_cap) << 1;
+		while (i++ < state->op_size)
+			tmp[i - 1] = state->ops[i - 1];
+		free(state->ops);
+		state->ops = tmp;
+		state->op_cap = (state->op_cap + !state->op_cap) << 1;
 	}
-	data->ops[data->op_size++] = op;
-	stack_op(&data->sa, &data->sb, op);
+	state->ops[state->op_size++] = op;
+	stack_op(&state->sa, &state->sb, op);
 	// debug
 	if (1)
 	{
 		ft_printf("%s\nA: ", stack_op_name(op));
 		i = 0;
-		while (i < data->sa.size)
+		while (i < state->sa.size)
 		{
-			ft_printf("%d ", data->sa.data[i]);
+			ft_printf("%d ", state->sa.data[i]);
 			++i;
 		}
 
 		ft_printf("\nB: ");
 		i = 0;
-		while (i < data->sb.size)
+		while (i < state->sb.size)
 		{
-			ft_printf("%d ", data->sb.data[i]);
+			ft_printf("%d ", state->sb.data[i]);
 			++i;
 		}
 		ft_printf("\n-----\n");

@@ -57,6 +57,6 @@ void			state_dump(t_state *state);
 /**
  * @brief Generates two pivots for splitting a block
  */
-void			state_pivots(t_state *state, t_blk blk, size_t *p1, size_t *p2);
+void			state_pivots(t_state *state, const t_blk *blk, int *p1, int *p2);
 
 #endif // STATE_H

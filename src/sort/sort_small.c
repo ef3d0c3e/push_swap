@@ -9,7 +9,7 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "push_swap.h"
+//#include "push_swap.h"
 
 /*
 void	sort_2(struct s_data *data)

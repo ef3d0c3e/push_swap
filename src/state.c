@@ -1,4 +1,5 @@
 #include "state.h"
+#include "blk/blk.h"
 #include <ft_printf.h>
 
 t_state	state_new(size_t sz)
@@ -29,9 +30,19 @@ void	state_dump(t_state *state)
 	state->op_size = 0;
 }
 
-void	state_pivots(t_state *state, t_blk blk, size_t *p1, size_t *p2)
+void	state_pivots(t_state *state, const t_blk *blk, int *p1, int *p2)
 {
 	// TODO: Heuristics
-	*p1 = blk.size / 3;
-	*p2 = 2 * *p1;
+	*p1 = blk->size / 3;
+	*p2 = *p1 + *p1;
+	if ((blk->dest & __BLK_SEL) == __BLK_A)
+	{
+		*p1 = state->sa.data[*p1];
+		*p2 = state->sa.data[*p2];
+	}
+	else
+	{
+		*p1 = state->sb.data[*p1];
+		*p2 = state->sb.data[*p2];
+	}
 }

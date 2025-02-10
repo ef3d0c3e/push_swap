@@ -35,6 +35,16 @@ typedef struct s_blk
 }	t_blk;
 
 /**
+ * @brief Gets the value at a given position
+ */
+int	blk_value(const t_state *s, const t_blk *blk, size_t pos);
+
+/**
+ * @brief Gets the maximum value inside the block
+ */
+int	blk_max(const t_state *s, const t_blk *blk);
+
+/**
  * @brief Split of three blocks created from single block
  */
 typedef union u_split
@@ -51,7 +61,7 @@ typedef union u_split
 /**
  * @brief Splits original block to 3 smaller blocks
  */
-t_split	blk_split(t_state *state, t_blk blk);
+t_split	blk_split(t_state *state, t_blk *blk);
 
 /**
  * @brief Moves value from a destination to another destination
@@ -72,5 +82,10 @@ t_split	blk_split(t_state *state, t_blk blk);
  * | BOT B | rrb  pa |  rb     |rrb pa ra|    x    |
  */
 void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
+
+/**
+ * @brief Sorts a small number elements on the block
+ */
+void	blk_sort_small(t_state *state, t_blk *blk);
 
 #endif // BLK_H
