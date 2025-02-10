@@ -57,7 +57,7 @@ void	op(t_state *state, enum e_stack_op op)
 	state->ops[state->op_size++] = op;
 	stack_op(&state->sa, &state->sb, op);
 	// debug
-	if (1)
+	if (0)
 	{
 		ft_printf("%s\nA: ", stack_op_name(op));
 		i = 0;

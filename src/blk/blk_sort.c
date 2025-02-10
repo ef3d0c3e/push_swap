@@ -120,17 +120,17 @@ void blk_sort(t_state *s, t_blk *blk)
 	pre_sort(s, blk);
 	if (blk->size <= 3)
 	{
-		ft_printf(">sort_small():\n");
+		//ft_printf(">sort_small():\n");
 		blk_sort_small(s, blk);
 		return;
 	}
 	split = blk_split(s, blk);
-	ft_printf("SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
+	//ft_printf("SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
 
 	i = 0;
 	while (i < 3)
 	{
-		ft_printf("BEGIN REC %d [%d/%d]\n", i, split.data[2 - i].size, split.data[2 - i].dest);
+		//ft_printf("BEGIN REC %d [%d/%d]\n", i, split.data[2 - i].size, split.data[2 - i].dest);
 		blk_sort(s, &split.data[2 - i]);
 		++i;
 	}

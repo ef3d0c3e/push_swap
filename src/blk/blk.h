@@ -56,11 +56,6 @@ int	blk_max(const t_state *s, const t_blk *blk);
 const t_stack	*blk_stack(const t_state *s, enum e_blk_dest dest);
 
 /**
- * @brief Checks if a block is absolutely sorted
- */
-int	blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset);
-
-/**
  * @brief Split of three blocks created from single block
  */
 typedef union u_split
@@ -120,5 +115,15 @@ void	blk_sort_3_top_for_a(t_state *state, t_blk *blk);
 void	blk_sort_small(t_state *state, t_blk *blk);
 
 void	blk_sort(t_state *state, t_blk *blk);
+
+/**
+ * @brief Checks if a block is absolutely sorted
+ */
+int		blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset);
+
+/**
+ * @brief Find quartiles in blk
+ */
+void	blk_quartiles(const t_state *s, const t_blk *blk, int *q1, int *q3);
 
 #endif // BLK_H

@@ -32,9 +32,5 @@ void	state_dump(t_state *state)
 
 void	state_pivots(t_state *state, const t_blk *blk, int *p1, int *p2)
 {
-	// TODO: Heuristics
-	*p1 = blk->size / 3;
-	*p2 = *p1 + *p1;
-	*p2 = blk_value(state, blk, *p1);
-	*p1 = blk_value(state, blk, *p2);
+	return blk_quartiles(state, blk, p1, p2);
 }

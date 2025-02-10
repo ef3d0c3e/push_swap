@@ -1,12 +1,13 @@
 NAME   := push_swap
 CC     := gcc
-CFLAGS := -Wall -Wextra -Og -ggdb -fsanitize=address
+CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
 
 SOURCES := \
 src/state.c \
 src/blk/split.c \
-src/blk/blk_sort.c \
 src/blk/blk.c \
+src/blk/blk_util.c \
+src/blk/blk_sort.c \
 src/blk/move.c \
 src/blk/blk_sort_3.c \
 src/stack/stack.c \

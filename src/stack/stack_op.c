@@ -29,12 +29,11 @@ static inline void	rot_impl(struct s_stack *s)
 {
 	const int	tmp = s->data[0];
 
-	if (s->data == s->start + 2 * s->capacity)
+	if (s->data + 1 >= s->start + 2 * s->capacity)
 	{
 		ft_memcpy((int *)s->start + s->capacity, s->data, s->size * sizeof(int));
 		s->data = (int *)s->start + s->capacity;
 	}
-
 	++s->data;
 	s->data[s->size - 1] = tmp;
 }
@@ -44,12 +43,11 @@ static void	rrot_impl(struct s_stack *s)
 {
 	const int	tmp = s->data[s->size - 1];
 
-	if (s->data == s->start)
+	if (s->data - 1 <= s->start)
 	{
 		ft_memcpy((int *)s->start + s->capacity, s->data, s->size * sizeof(int));
 		s->data = (int *)s->start + s->capacity;
 	}
-
 	--s->data;
 	s->data[0] = tmp;
 }
@@ -57,7 +55,7 @@ static void	rrot_impl(struct s_stack *s)
 /* Push implementation */
 static void push_impl(struct s_stack *from, struct s_stack *to)
 {
-	if (to->data == to->start)
+	if (to->data - 1 <= to->start)
 	{
 		ft_memcpy((int *)to->start + to->capacity, to->data, to->size * sizeof(int));
 		to->data = (int *)to->start + to->capacity;

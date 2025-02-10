@@ -34,6 +34,7 @@ t_split blk_split(t_state *s, t_blk *blk)
 	//size_t	i;
 	
 	state_pivots(s, blk, pivots, pivots + 1);
+	//ft_dprintf(2, "pivots=(%d, %d)\n", pivots[0], pivots[1]);
 	split = init_split(blk);
 	while (blk->size)
 	{

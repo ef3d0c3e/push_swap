@@ -289,11 +289,13 @@ int main(int ac, char **av)
 	i = 0;
 	while (i < state.sa.size)
 	{
-		ft_printf("%d ", state.sa.data[i]);
+		//ft_printf("%d ", state.sa.data[i]);
 		++i;
 	}
-	//state_dump(&state);
-	ft_printf("SORTED IN %d insn\n", state.op_size);
+	state_dump(&state);
+	if (!stack_sorted(&state.sa))
+		ft_printf("SORT FAIL\n\n");
+	//ft_printf("SORTED IN %d insn\n", state.op_size);
 	state_free(&state);
 
 	return 0;
