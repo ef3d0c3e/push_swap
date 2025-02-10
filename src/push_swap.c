@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <ft_printf.h>
+#include "blk/blk.h"
 #include "sort/sort.h"
 #include "stack/stack.h"
 #include "push_swap.h"
@@ -265,8 +266,8 @@ int main(int ac, char **av)
 	t_state	state;
 	size_t	i;
 
-	basic_tests();
-	return 0;
+	//basic_tests();
+	//return 0;
 	if (ac == 1)
 	{
 		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
@@ -281,6 +282,10 @@ int main(int ac, char **av)
 	//op(&state, STACK_OP_PB);
 	//op(&state, STACK_OP_PB);
 	sort_stack(&state);
+	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
+	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
+	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
+	//blk_move(&state, BLK_B_BOT, BLK_A_BOT);
 	i = 0;
 	while (i < state.sa.size)
 	{
@@ -288,6 +293,7 @@ int main(int ac, char **av)
 		++i;
 	}
 	//state_dump(&state);
+	ft_printf("SORTED IN %d insn\n", state.op_size);
 	state_free(&state);
 
 	return 0;

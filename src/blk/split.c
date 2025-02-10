@@ -31,32 +31,26 @@ t_split blk_split(t_state *s, t_blk *blk)
 	int	pivots[2];
 	t_split	split;
 	int		val;
-	size_t	i;
+	//size_t	i;
 	
 	state_pivots(s, blk, pivots, pivots + 1);
 	split = init_split(blk);
-	i = 0;
-	while (i++ < blk->size)
+	while (blk->size)
 	{
 		val = blk_value(s, blk, 0);
 		if (val > pivots[1]) // max
 		{
 			blk_move(s, blk->dest, split.data[2].dest);
-			check_max(s, &split.data[2]);
 			++split.data[2].size;
+			//check_max(s, &split.data[2]);
 		}
 		else if (val > pivots[0]) // mid
 			split.data[1].size += (blk_move(s, blk->dest, split.data[1].dest), 1);
 		else // min
 			split.data[0].size += (blk_move(s, blk->dest, split.data[0].dest), 1);
+		--blk->size;
 	}
-	/*
-	ft_printf("-- ROLL blocks=(%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
-	i = 1;
-	while (i++ < split.data[0].size)
-		op(s, STACK_OP_RRR);
-	ft_printf("-- ROLL\n");
-	*/
+	//asm("int $3");
 	return (split);
 }
 
@@ -86,10 +80,5 @@ t_split blk_split_b2a(t_state *s, t_blk *blk)
 			split.data[0].size += (blk_move(s, blk->dest, split.data[0].dest), 1);
 		}
 	}
-	//ft_printf("-- ROLL blocks=(%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
-	//i = 1;
-	//while (i++ < split.data[0].size)
-	//	op(s, STACK_OP_RRR);
-	//ft_printf("-- ROLL\n");
 	return (split);
 }

@@ -20,11 +20,16 @@ typedef enum e_blk_dest
 	__BLK_TOP = 0b00,
 	__BLK_BOT = 0b01,
 	//
-	BLK_A_TOP = __BLK_A | __BLK_TOP,
-	BLK_A_BOT = __BLK_A | __BLK_BOT,
-	BLK_B_TOP = __BLK_B | __BLK_TOP,
-	BLK_B_BOT = __BLK_B | __BLK_BOT,
+	BLK_A_TOP = __BLK_A | __BLK_TOP, // 00
+	BLK_A_BOT = __BLK_A | __BLK_BOT, // 01
+	BLK_B_TOP = __BLK_B | __BLK_TOP, // 10
+	BLK_B_BOT = __BLK_B | __BLK_BOT, // 11
 } t_blk_dest;
+
+/**
+ * @brief Gets the name of a destination
+ */
+const char *blk_dest_name(enum e_blk_dest dest);
 
 /**
  * @brief Block
@@ -90,7 +95,7 @@ t_split	blk_split(t_state *state, t_blk *blk);
  * | TOP A |    x    |    ra   |  pb    | pb   rb |
  * | BOT A |  rra    |    x    |rra  pb |rra pb rb|
  * | TOP B | pa      | pa   ra |   x    |   rb    |
- * | BOT B | rrb  pa |rrb pa ra| rb     |    x    |
+ * | BOT B | rrb  pa |rrb pa ra| rrb    |    x    |
  */
 void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
 

@@ -17,6 +17,7 @@ void blk_sort_3_top_for_a(t_state *s, t_blk *blk)
 
 	if ((blk->dest & __BLK_POS) == __BLK_TOP)
 	{
+		//asm("int $3");
 		ft_printf("(%d, %d, %d, %d)\n", u, v, w, blk->dest);
 		((void)((u > v && v > w
 				&& (encode(s, __STACK_OP_ROTATE, blk),

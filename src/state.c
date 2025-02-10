@@ -35,14 +35,6 @@ void	state_pivots(t_state *state, const t_blk *blk, int *p1, int *p2)
 	// TODO: Heuristics
 	*p1 = blk->size / 3;
 	*p2 = *p1 + *p1;
-	if ((blk->dest & __BLK_SEL) == __BLK_A)
-	{
-		*p1 = state->sa.data[*p1];
-		*p2 = state->sa.data[*p2];
-	}
-	else
-	{
-		*p1 = state->sb.data[*p1];
-		*p2 = state->sb.data[*p2];
-	}
+	*p2 = blk_value(state, blk, *p1);
+	*p1 = blk_value(state, blk, *p2);
 }

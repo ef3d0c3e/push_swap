@@ -1,6 +1,17 @@
 #include "blk.h"
 #include "../state.h"
 
+const char *blk_dest_name(enum e_blk_dest dest)
+{
+	static const char	*table[4] = {
+		"TOP A",
+		"BOT A",
+		"TOP B",
+		"BOT B",
+	};
+	return (table[dest]);
+}
+
 int	blk_value(const t_state *s, const t_blk *blk, size_t pos)
 {
 	if (blk->dest == BLK_A_TOP)
