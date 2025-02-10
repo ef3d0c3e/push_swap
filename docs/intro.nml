@@ -261,6 +261,8 @@ Performs **rra** and **rrb**:
 
 #+LAYOUT_END
 
+Technically, you'd want to use the `rr`, `ss` and `rrr` instructions where possible. However, there's a general optimization technique &{opti_state} that will do it for you, so you don't have to worry about using them in the first place.
+
 # Algorithm
 
 :: TODO: REF
@@ -268,25 +270,99 @@ The basis of the algorithm is a 3-location stack-based quick sort.
 
 ## Sorting
 
-Base case sorts are handled manually by building a table with possible permutations.
-For instance, suppose we want to sort a block of size 3: $(u, v, w)$.
-There are only 6 possible scenarii:
- - $u < v < w$
- - $u < w < v$
- - $v < u < w$
- - $v < w < u$
- - $w < u < v$
- - $w < v < u$
-I applied this logic in order to sort from any location to `A_TOP`.
-	
+I handle base case sorting for all blocks with ``C, size <= 3``. I have manually built tables to sort from any block to A's top.
+
+For ``C, size == 3``, that makes $3! = 4$ cases, for each possible destination (top A, bot B, etc..).
+So in total 24 cases for size 3. Then 8 for size 2, and 1 for size 1.
+
+Below is the code that dispatch the instructions according to every possible scenario (only for B's top and A's bot):
+```C, Sample sorting table for size == 3
+	else if (blk->dest == BLK_B_TOP)
+		((void)(
+		   (u > v && v > w && (op(s, STACK_OP_PA), op(s, STACK_OP_PA), op(s, STACK_OP_PA), 1))
+		|| (u > w && w > v && (op(s, STACK_OP_PA), op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_PA), 1))
+		|| (v > u && u > w && (op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_PA), op(s, STACK_OP_PA), 1))
+		|| (v > w && w > u && (op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_PA), 1))
+		|| (w > u && u > v && (op(s, STACK_OP_PA), op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_SA), op(s, STACK_OP_PA), 1))
+		|| (w > v && v > u && (op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_SB), op(s, STACK_OP_PA), op(s, STACK_OP_SA), op(s, STACK_OP_PA), 1))
+	));
+	else if (blk->dest == BLK_A_BOT)
+		((void)(
+		   (u > v && v > w && (op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), 1))
+		|| (u > w && w > v && (op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), 1))
+		|| (v > u && u > w && (op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), op(s, STACK_OP_RRA), 1))
+		|| (v > w && w > u && (op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), 1))
+		|| (w > u && u > v && (op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_PB), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), op(s, STACK_OP_PA), 1))
+		|| (w > v && v > u && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB), op(s, STACK_OP_RRA), op(s, STACK_OP_RRA), op(s, STACK_OP_SA), op(s, STACK_OP_PA), 1))
+	));```
 
 # Utility
 
 ## Moving values
 
-Here's the table that tells us what moves are required to move values
-|From\To|  TOP A  |  TOP B  |  BOT A  |  BOT B  |
-| TOP A |    x    |   pb    |    ra   | pb   rb |
-| TOP B | pa      |    x    | pa   ra |   rb    |
-| BOT A |  ra     | rra  pb |    x    |rra pb rb|
-| BOT B | rrb  pa |  rb     |rrb pa ra|    x    |
+Push_swap required me to move values from one place to another. I found that writing a ``C,blk_move`` function that does it is very handy.
+
+Here's the table that tells us what moves are required to move values (row: *move from*, columns: *move to*):
+|:talign=center: |  ``TOP A``  |  ``BOT A``  | ``TOP B``  |  ``BOT B``  |
+| ``TOP A``      |             |**    ra   **|**  pb    **|** pb   rb **|
+| ``BOT A``      |**  rra    **|**         **|**rra  pb **|**rra pb rb**|
+| ``TOP B``      |** pa      **|** pa   ra **|**        **|**   rb    **|
+| ``BOT B``      |** rrb  pa **|**rrb pa ra**|** rrb    **|**         **|
+
+Using this table, I implement the following move function that moves from any location to any other location:
+
+```C, Move function
+void	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
+{
+	const uint8_t	id = (from << 2) | to;
+
+	/* Check if move is legal */
+	if (((from & __BLK_SEL) == __BLK_A && !s->sa.size)
+		|| ((from & __BLK_SEL) == __BLK_B && !s->sb.size))
+		return ;
+	/* Move table */
+	(void)((!(id % 5))
+		|| (id == 1 && (op(s, STACK_OP_RA), 1))
+		|| (id == 2 && (op(s, STACK_OP_PB), 1))
+		|| (id == 3 && (op(s, STACK_OP_PB), op(s, STACK_OP_RB), 1))
+		|| (id == 4 && (op(s, STACK_OP_RRA), 1))
+		|| (id == 6 && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB), 1))
+		|| (id == 7 && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB),
+			op(s, STACK_OP_RB), 1))
+		|| (id == 8 && (op(s, STACK_OP_PA), 1))
+		|| (id == 9 && (op(s, STACK_OP_PA), op(s, STACK_OP_RA), 1))
+		|| (id == 11 && (op(s, STACK_OP_RB), 1))
+		|| (id == 12 && (op(s, STACK_OP_RRB), op(s, STACK_OP_PA), 1))
+		|| (id == 13 && (op(s, STACK_OP_RRB), op(s, STACK_OP_PA),
+			op(s, STACK_OP_RA), 1))
+		|| (id == 14 && (op(s, STACK_OP_RRB), 1)));
+}
+```
+
+# Optimizations
+
+##{opti_state} State machine
+
+This is a general optimization technique that works on almost all state-machine problems.
+Essentially it may happen that a string of instructions produce the same output as another (smaller) set of instructions.
+For instance:
+ * `ra rb` produces the same side effect as `rr`.
+ * `ra rra` produces the same side effect as `nop`.
+
+### Side-effects
+
+Each instruction will produce it's own side effects. The side effects depends on the instruction, but also on the state of the stacks.
+:: TODO para
+
+Sometime it may be safe to reorder instructions, as their side effect can be contained:
+Suppose that the following program the following is valid:
+``Plain Text
+sb
+ra
+sa``
+Because `sb` is the only instruction in the program that acts on B. It is safe to reorder it anywhere in the program.
+
+Therefore the program can be simplified to the following:
+``Plain Text
+ra
+ss``
