@@ -10,7 +10,7 @@ static inline void	swap(int *a, int *b)
 }
 
 /* Quicksort partition function */
-static inline int	qsort_partition(int *arr, int *indices, int low, int high)
+static inline int	qsort_partition_indices(int *arr, int *indices, int low, int high)
 {
     int	pivot;
     int	i;
@@ -35,13 +35,46 @@ static inline int	qsort_partition(int *arr, int *indices, int low, int high)
 }
 
 /* Modified quicksort */
-void	quicksort(int *arr, int *indices, int low, int high)
+void	quicksort_indices(int *arr, int *indices, int low, int high)
 {
 	int	pivot;
 
 	if (low < high) {
-		pivot = qsort_partition(arr, indices, low, high);
-		quicksort(arr, indices, low, pivot - 1);
-		quicksort(arr, indices, pivot + 1, high);
+		pivot = qsort_partition_indices(arr, indices, low, high);
+		quicksort_indices(arr, indices, low, pivot - 1);
+		quicksort_indices(arr, indices, pivot + 1, high);
+	}
+}
+
+static inline int	qsort_partition(int *arr, int low, int high)
+{
+    int	pivot;
+    int	i;
+	int	j;
+
+	pivot = arr[high];
+	i = low - 1;
+	j = low;
+	while (j < high)
+	{
+		if (arr[j] <= pivot)
+		{
+			++i;
+            swap(&arr[i], &arr[j]);
+		}
+		++j;
+	}
+    swap(&arr[i + 1], &arr[high]);
+    return (i + 1);
+}
+
+void	quicksort(int *arr, int low, int high)
+{
+	int	pivot;
+
+	if (low < high) {
+		pivot = qsort_partition(arr, low, high);
+		quicksort(arr, low, pivot - 1);
+		quicksort(arr, pivot + 1, high);
 	}
 }

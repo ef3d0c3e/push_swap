@@ -1,6 +1,6 @@
 NAME   := push_swap
 CC     := gcc
-CFLAGS := -Wall -Wextra -ggdb -ggdb -fsanitize=address -lm
+CFLAGS := -Wall -Wextra -ggdb -ggdb -fsanitize=address -lm -fopenmp
 
 SOURCES := \
 src/blk/blk_util.c \
@@ -21,6 +21,7 @@ src/state/state_util.c  \
 src/sort/pivot.c  \
 src/sort/quicksort.c  \
 src/sort/sort.c  \
+src/sort/annealing.c  \
 src/sort/sort_small.c
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))

@@ -36,14 +36,6 @@ static void ps(const char *name, const t_state *s)
 	ft_printf("\n");
 }
 
-void	state_revert(t_state *s, const t_savestate *ss)
-{
-	s->sa.size = ss->sa.size;
-	s->sb.size = ss->sb.size;
-	ft_memcpy(s->sa.data, ss->sa.data, ss->sa.size * sizeof(int));
-	ft_memcpy(s->sb.data, ss->sb.data, ss->sb.size * sizeof(int));
-}
-
 static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size_t skip)
 {
 	ssize_t				results[sizeof(op_insns) / sizeof(op_insns[0])];
@@ -86,7 +78,7 @@ static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size
 
 static void	init_bt(t_backtrack *bt, const t_state *s)
 {
-	bt->max_frame_lookhead = 1000;
+	bt->max_frame_lookhead = 100;
 	bt->max_insn_recurse = 1;
 	bt->saves = s->saves;
 	bt->saves_size = s->saves_size;
@@ -98,8 +90,6 @@ void	opti(const t_state *s)
 	t_state tmp;
 	t_backtrack bt;
 
-			for (size_t j = 0; j < s->sa.size; ++j)
-				ft_printf("%d ", s->sa.data[j]);
 	size_t cnt = 0;
 
 	i = 0;

@@ -41,7 +41,6 @@ void	blk_sort_2(t_state *state, t_blk *blk)
 
 void	blk_sort_small(t_state *state, t_blk *blk)
 {
-	ft_printf("|SORT %d %s|\n", blk->size, blk_dest_name(blk->dest));
 	if (blk->size == 1)
 	{
 		blk_move(state, blk->dest, BLK_A_TOP);

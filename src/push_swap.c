@@ -54,13 +54,13 @@ int main(int ac, char **av)
 	}
 
 	pivots = pivots_init((struct s_pivots_cfg) {
-		.temperature_initial = 5.f,
+		.temperature_initial = 0.5f,
 		.temperature_min = .1f,
-		.temperature_cooling = .95f,
-		.factor_step = 0.01f,
+		.temperature_cooling = .50f,
+		.factor_step = 0.1f,
 		.max_tries = 10,
 	});
-	state = state_new(&pivots, 0, ac - 1);
+	state = state_new(&pivots, 0xFFABCDEF, ac - 1);
 	i = 1;
 	while (i < (size_t)ac)
 		state.sa.data[state.sa.size++] = atoi(av[i++]);
@@ -85,8 +85,8 @@ int main(int ac, char **av)
 	//state_dump(&state);
 	if (!stack_sorted(&state.sa))
 		ft_printf("SORT FAIL\n\n");
-	for (size_t j = 0; j < state.op_size; ++j)
-		ft_printf("%s\n", stack_op_name(state.ops[j]));
+	//for (size_t j = 0; j < state.op_size; ++j)
+	//	ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
 	//opti(&state);

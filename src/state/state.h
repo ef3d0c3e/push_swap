@@ -112,6 +112,11 @@ void			state_dump(t_state *state);
 void			state_create_savestate(t_state *s);
 
 /**
+ * @brief Revert to a savestate
+ */
+void			state_revert(t_state *s, const t_savestate *ss);
+
+/**
  * @brief Constructs state from saved state
  *
  * @param save The savestate to generate a state from
@@ -119,5 +124,16 @@ void			state_create_savestate(t_state *s);
  * @retruns The state constructed from a savestate
  */
 t_state			state_from_savestate(const t_savestate *save);
+
+/**
+ * @brief Gets a random value from the state
+ *
+ * Internally uses xorshift(13, 17, 5)
+ *
+ * @param s State to generate from
+ *
+ * @returns A random number
+ */
+uint32_t		state_random(t_state *s);
 
 #endif // STATE_H

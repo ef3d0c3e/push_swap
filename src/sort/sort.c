@@ -26,7 +26,7 @@ static void	replace_with_index(struct s_stack *sa)
 	i = 0;
 	while (i++ < sa->size)
 		indices[i - 1] = i - 1;
-	quicksort(sa->data, indices, 0, sa->size - 1);
+	quicksort_indices(sa->data, indices, 0, sa->size - 1);
 	i = 0;
 	while (i++ < sa->size)
 		sa->data[indices[i - 1]] = i - 1;

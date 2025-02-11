@@ -22,10 +22,15 @@ typedef struct s_pivots_data
 
 
 }	t_pivots_data;
+
 /**
  * @brief Quicksort for integer array with cmp = a < b
  */
-void	quicksort(int *arr, int *indices, int low, int high);
+void	quicksort(int *arr, int low, int high);
+/**
+ * @brief Modified quicksort that also sorts indices following the order in arr
+ */
+void	quicksort_indices(int *arr, int *indices, int low, int high);
 
 /**
  * @brief Initializes the pivots data
@@ -33,6 +38,10 @@ void	quicksort(int *arr, int *indices, int low, int high);
 t_pivots_data	pivots_init(struct s_pivots_cfg cfg);
 
 void	sort_stack(t_state *s);
+
+void	annealing_precise(t_state *s, const t_blk *blk, float *f1, float *f2);
+
+void	annealing_fast(t_state *s, const t_blk *blk, float *f1, float *f2);
 
 /**
  * @brief Gets the next pivots
