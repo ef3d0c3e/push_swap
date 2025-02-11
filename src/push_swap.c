@@ -21,6 +21,23 @@
 
 void basic_tests();
 
+static void ps(const char *name, const t_state *s)
+{
+	ft_printf(" [ STATE: %s ]\n", name);
+	ft_printf("OP | ");
+
+	for (size_t i = 0; i < s->op_size; ++i)
+		ft_printf(" %s", stack_op_name(s->ops[i]));
+
+	ft_printf("\n A | ");
+	for (size_t i = 0; i < s->sa.size; ++i)
+		ft_printf(" %d", s->sa.data[i]);
+	ft_printf("\n B | ");
+	for (size_t i = 0; i < s->sb.size; ++i)
+		ft_printf(" %d", s->sb.data[i]);
+	ft_printf("\n");
+}
+
 int main(int ac, char **av)
 {
 	t_state	state;
@@ -42,6 +59,8 @@ int main(int ac, char **av)
 	//op(&state, STACK_OP_PB);
 	//op(&state, STACK_OP_PB);
 	sort_stack(&state);
+
+	ps("aft", &state);
 	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
 	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
 	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
@@ -52,12 +71,13 @@ int main(int ac, char **av)
 		//ft_printf("%d ", state.sa.data[i]);
 		++i;
 	}
-	for (size_t j = 0; j < state.op_size; ++j)
-		ft_printf("%s\n", stack_op_name(state.ops[j]));
 	ft_printf("SORTED IN %d insn\n", state.op_size);
 	//state_dump(&state);
 	if (!stack_sorted(&state.sa))
 		ft_printf("SORT FAIL\n\n");
+	return 0;
+	for (size_t j = 0; j < state.op_size; ++j)
+		ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
 	opti(&state);

@@ -105,7 +105,7 @@ static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size
 
 static void	init_bt(t_backtrack *bt, const t_state *s)
 {
-	bt->max_frame_lookhead = 350;
+	bt->max_frame_lookhead = 20;
 	bt->max_insn_recurse = 1;
 	bt->saves = s->saves;
 	bt->saves_size = s->saves_size;
@@ -116,6 +116,10 @@ void	opti(const t_state *s)
 	size_t	i;
 	t_state tmp;
 	t_backtrack bt;
+
+			for (size_t j = 0; j < s->sa.size; ++j)
+				ft_printf("%d ", s->sa.data[j]);
+	size_t cnt = 0;
 
 	i = 0;
 	init_bt(&bt, s);
@@ -132,7 +136,8 @@ void	opti(const t_state *s)
 		{
 			i += bt.best_skip;
 			for (size_t j = 0; j < bt.best_len; ++j)
-				ft_printf("|%s\n", stack_op_name(bt.best_ops[j]));
+				cnt += bt.best_ops[j] != STACK_OP_NOP;
+				//ft_printf("|%s\n", stack_op_name(bt.best_ops[j]));
 			//ps("before", &tmp);
 			//ft_printf("i=%d\n", i);
 			//t_state after = state_from_savestate(s->saves + i);
@@ -141,9 +146,12 @@ void	opti(const t_state *s)
 		}
 		else
 		{
-			ft_printf(">%s\n", stack_op_name(s->ops[i]));
+			//ft_printf(">%s\n", stack_op_name(s->ops[i]));
+			++cnt;
 			++i;
 		}
 		state_free(&tmp);
 	}
+	ft_printf("\nreduction = %d\n", cnt);
+
 }

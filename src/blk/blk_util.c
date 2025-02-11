@@ -1,5 +1,6 @@
 #include "blk.h"
 #include "../state.h"
+#include "ft_printf.h"
 
 int	blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset)
 {
@@ -21,6 +22,23 @@ int	blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset)
 		++i;
 	}
 	return (1);
+}
+
+static void ps(const char *name, const t_state *s)
+{
+	ft_printf(" [ STATE: %s ]\n", name);
+	ft_printf("OP | ");
+
+	for (size_t i = 0; i < s->op_size; ++i)
+		ft_printf(" %s", stack_op_name(s->ops[i]));
+
+	ft_printf("\n A | ");
+	for (size_t i = 0; i < s->sa.size; ++i)
+		ft_printf(" %d", s->sa.data[i]);
+	ft_printf("\n B | ");
+	for (size_t i = 0; i < s->sb.size; ++i)
+		ft_printf(" %d", s->sb.data[i]);
+	ft_printf("\n");
 }
 
 void	blk_quartiles(const t_state *s, const t_blk *blk, int *q1, int *q3)
@@ -85,4 +103,6 @@ void	blk_quartiles(const t_state *s, const t_blk *blk, int *q1, int *q3)
 		}
 		max = largest;
 	}
+	ps("s1", s);
+	ft_printf("Q1=%d Q3=%d\n", *q1, *q3);
 }
