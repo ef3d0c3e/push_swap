@@ -68,6 +68,8 @@ void	op(t_state *state, enum e_stack_op op)
 	enum e_stack_op	*tmp;
 	size_t			i;
 
+	if (!state->saves)
+		savestate(state);
 	if (state->op_size >= state->op_cap)
 	{
 		tmp = malloc(sizeof(op) * ((state->op_cap + !state->op_cap) << 1));

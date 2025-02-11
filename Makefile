@@ -4,6 +4,7 @@ CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
 
 SOURCES := \
 src/state.c \
+src/state_util.c \
 src/blk/split.c \
 src/blk/blk.c \
 src/blk/blk_util.c \

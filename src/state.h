@@ -71,11 +71,24 @@ void			state_free(t_state *state);
 void			state_dump(t_state *state);
 
 /**
+ * @brief Partially clones a sate
+ *
+ * This function will only clone the stack states.
+ *
+ * @param state The state to clone
+ *
+ * @returns The cloned state
+ */
+t_state			state_partial_clone(const t_state *state);
+
+/**
  * @brief Constructs state from saved state
  *
- * @warn This will not clone stacks, therefore the savestate will become unusable.
+ * @param save The savestate to generate a state from
+ *
+ * @retruns The state constructed from a savestate
  */
-t_state			state_savestate(t_savestate	*save);
+t_state			state_from_savestate(const t_savestate *save);
 
 /**
  * @brief Generates two pivots for splitting a block

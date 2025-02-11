@@ -20,6 +20,11 @@ t_state	state_new(size_t sz)
 
 void	state_free(t_state *state)
 {
+	while (state->saves_size--)
+	{
+		stack_free(&state->saves[state->saves_size].sa);
+		stack_free(&state->saves[state->saves_size].sb);
+	}
 	stack_free(&state->sa);
 	stack_free(&state->sb);
 	free(state->ops);
@@ -34,28 +39,6 @@ void	state_dump(t_state *state)
 	while (i < state->op_size)
 		ft_printf("%s\n", stack_op_name(state->ops[i++]));
 	state->op_size = 0;
-}
-
-t_state	state_savestate(t_savestate	*save)
-{
-	enum e_stack_op	*ops;
-
-	ops = malloc(save->id * sizeof(enum e_stack_op));
-	if (!ops)
-	{
-		ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
-		exit(1);
-	}
-	return ((t_state){
-		.sa = save->sa,
-		.sb = save->sb,
-		.ops = ft_memcpy(ops, save->ops, save->id * sizeof(enum e_stack_op)),
-		.op_size = save->id,
-		.op_cap = save->id,
-		.saves = NULL,
-		.saves_size = 0,
-		.saves_cap = 0,
-	});
 }
 
 void	state_pivots(t_state *state, const t_blk *blk, int *p1, int *p2)

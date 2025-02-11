@@ -52,6 +52,8 @@ int main(int ac, char **av)
 		//ft_printf("%d ", state.sa.data[i]);
 		++i;
 	}
+	for (size_t j = 0; j < state.op_size; ++j)
+		ft_printf("%s\n", stack_op_name(state.ops[j]));
 	ft_printf("SORTED IN %d insn\n", state.op_size);
 	//state_dump(&state);
 	if (!stack_sorted(&state.sa))
