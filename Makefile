@@ -1,24 +1,25 @@
 NAME   := push_swap
 CC     := gcc
-CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
+CFLAGS := -Wall -Wextra -ggdb -fsanitize=address -O2
 
 SOURCES := \
-src/state.c \
-src/state_util.c \
-src/blk/split.c \
-src/blk/blk.c \
-src/blk/blk_util.c \
-src/blk/blk_sort.c \
-src/blk/move.c \
-src/blk/blk_sort_3.c \
-src/stack/stack.c \
-src/stack/stack_op.c \
-src/util.c \
-src/push_swap.c \
-src/sort/sort.c \
-src/sort/sort_small.c \
-src/opti/opti.c
-
+	src/state.c \
+	src/blk/blk_util.c \
+	src/blk/split.c \
+	src/blk/blk_sort.c \
+	src/blk/blk.c \
+	src/blk/blk_sort_3.c \
+	src/blk/move.c \
+	src/stack/stack.c \
+	src/stack/stack_op.c \
+	src/util.c \
+	src/push_swap.c \
+	src/opti/opti.c \
+	src/opti/backtrack.c \
+	src/state_util.c \
+	src/tests.c \
+	src/sort/sort.c \
+	src/sort/sort_small.c
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))
 

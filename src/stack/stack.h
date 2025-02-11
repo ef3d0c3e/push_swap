@@ -176,6 +176,10 @@ enum e_stack_op
 	 * @brief Performs RRA and RRB
 	 */
 	STACK_OP_RRR = __STACK_OP_REV_ROTATE | __STACK_OP_SEL_A | __STACK_OP_SEL_B,
+	/**
+	 * @brief Does nothing
+	 */
+	STACK_OP_NOP = 0b10100,
 };
 
 /**
@@ -191,6 +195,21 @@ enum e_stack_op
  */
 void
 stack_op(struct s_stack *sa, struct s_stack *sb, enum e_stack_op op);
+
+/**
+ * @brief Applies @ref stack_op's reverse operation over stack A's and B's
+ *
+ * See @ref stack_op for more informations about operations.
+ *
+ * This function can be called after any stack_op(). In order to guarantee this function produces valid output,
+ * invalid push must not happen in the program.
+ *
+ * @param sa Stack A
+ * @param sb Stack B
+ * @param op Operation to apply
+ */
+void
+stack_unwind(struct s_stack *sa, struct s_stack *sb, enum e_stack_op op);
 
 /**
  * @brief Utility to get the name of a stack operation

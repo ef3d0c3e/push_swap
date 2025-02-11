@@ -67,7 +67,8 @@ const char	*stack_op_name(enum e_stack_op op)
 	[STACK_OP_RR] = "rr",
 	[STACK_OP_RRA] = "rra",
 	[STACK_OP_RRB] = "rrb",
-	[STACK_OP_RRR] = "rrr"
+	[STACK_OP_RRR] = "rrr",
+	[STACK_OP_NOP] = "nop",
 	};
 
 	return (names[op]);

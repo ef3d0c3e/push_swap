@@ -82,6 +82,14 @@ void			state_dump(t_state *state);
 t_state			state_partial_clone(const t_state *state);
 
 /**
+ * @brief Inserts a new savestate
+ *
+ * @param s State to insert a savestate into
+ */
+t_savestate		*state_create_savestate(t_state *s);
+
+
+/**
  * @brief Constructs state from saved state
  *
  * @param save The savestate to generate a state from

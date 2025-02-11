@@ -1,4 +1,6 @@
 #include "state.h"
+#include "util.h"
+#include <ft_printf.h>
 
 t_state			state_partial_clone(const t_state *state)
 {
@@ -35,4 +37,31 @@ t_state	state_from_savestate(const t_savestate	*save)
 		.saves_size = 0,
 		.saves_cap = 0,
 	});
+}
+
+t_savestate	*state_create_savestate(t_state *s)
+{
+	t_savestate	*new;
+
+	if (!s->saves || s->saves_cap == s->saves_size)
+	{
+		new = malloc(sizeof(t_savestate) * ((s->saves_cap + !s->saves_cap) << 1));
+		if (!new)
+		{
+			ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
+			exit(1);
+		}
+		ft_memcpy(new, s->saves, sizeof(t_savestate) * s->saves_size);
+		free(s->saves);
+		s->saves = new;
+		s->saves_cap = (s->saves_cap + !s->saves_cap) << 1;
+	}
+
+	s->saves[s->saves_size] = (t_savestate){
+		.sa = stack_clone(&s->sa),
+		.sb = stack_clone(&s->sb),
+		.ops = s->ops,
+		.id = s->saves_size,
+	};
+	return (&s->saves[s->saves_size++]);
 }
