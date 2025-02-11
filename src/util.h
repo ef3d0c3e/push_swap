@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 # define UTIL_H
 
-# include "state.h"
+# include "state/state.h"
 
 /**
  * @brief Memcpy implementation from libft
@@ -14,6 +14,6 @@ void			*ft_memcpy(void *dest, const void *src, size_t n);
  * @param state The @ref s_state struct
  * @param op Operation to perform
  */
-void			op(struct s_state *state, enum e_stack_op op);
+void			op(t_state *state, enum e_stack_op op);
 
 #endif // UTIL_H

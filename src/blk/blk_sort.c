@@ -108,6 +108,7 @@ void blk_sort(t_state *s, t_blk *blk)
 {
 	t_split	split;
 	size_t	i;
+	int		pivots[2];
 
 	if (blk->dest == BLK_A_BOT && s->sa.size == blk->size)
 		blk->dest = BLK_A_TOP;
@@ -121,8 +122,9 @@ void blk_sort(t_state *s, t_blk *blk)
 		blk_sort_small(s, blk);
 		return;
 	}
-	split = blk_split(s, blk);
-	ft_printf(">>>>>>>>>>>SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
+	pivots_next(s, blk, pivots, pivots + 1);
+	split = blk_split(s, blk, pivots[0], pivots[1]);
+	//ft_printf(">>>>>>>>>>>SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
 
 	i = 0;
 	while (i < 3)

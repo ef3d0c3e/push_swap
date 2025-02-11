@@ -1,5 +1,5 @@
 #include "backtrack.h"
-#include "../state.h"
+#include "../state/state.h"
 
 static inline int	memeq(const void *l, const void *r, size_t N)
 {
@@ -37,4 +37,22 @@ int	bt_compare_states(const t_state *s, const t_savestate *ss)
 	return (memeq(s->sa.data, ss->sa.data, s->sa.size)
 		&& memeq(s->sb.data, ss->sb.data, s->sb.size)
 			);
+}
+
+size_t bt_find_future(const t_backtrack *bt, const size_t start, const t_state* state)
+{
+	const t_savestate	*future;
+	size_t				i;
+	size_t				best;
+
+	i = 1;
+	best = 0;
+	while (i < bt->max_frame_lookhead && start + i + 1 < bt->saves_size)
+	{
+		future = bt->saves + start + i;
+		if (bt_compare_states(state, future))
+			best = i;
+		++i;
+	}
+	return (best);
 }

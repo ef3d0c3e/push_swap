@@ -76,7 +76,7 @@ typedef union u_split
 /**
  * @brief Splits original block to 3 smaller blocks
  */
-t_split	blk_split(t_state *state, t_blk *blk);
+t_split	blk_split(t_state *state, t_blk *blk, int p1, int p2);
 
 /**
  * @brief Moves value from a destination to another destination
@@ -138,10 +138,5 @@ void	blk_sort(t_state *state, t_blk *blk);
  * @param offset Start offset of the check
  */
 int		blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset);
-
-/**
- * @brief Find quartiles in blk
- */
-void	blk_quartiles(const t_state *s, const t_blk *blk, int *q1, int *q3);
 
 #endif // BLK_H

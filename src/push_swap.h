@@ -12,9 +12,11 @@
 #ifndef PUSH_SWAP_H
 # define PUSH_SWAP_H
 
-# include "stack/stack.h"
-#include "state.h"
+# include "state/state.h"
 
-void			sort_stack(struct s_state *state);
+/**
+ * @brief Push swap sort function
+ */
+void			sort_stack(t_state *state);
 
 #endif // PUSH_SWAP_H

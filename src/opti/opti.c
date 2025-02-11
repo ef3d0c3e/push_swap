@@ -1,4 +1,4 @@
-#include "../state.h"
+#include "../state/state.h"
 #include "../util.h"
 #include "opti.h"
 #include "backtrack.h"
@@ -36,25 +36,6 @@ static void ps(const char *name, const t_state *s)
 	ft_printf("\n");
 }
 
-/* Find a corresponding future state to the current state, returns the number of skipped frames */
-static inline size_t find_future(const t_backtrack *bt, const size_t start, const t_state* state)
-{
-	const t_savestate	*future;
-	size_t				i;
-	size_t				best;
-
-	i = 1;
-	best = 0;
-	while (i < bt->max_frame_lookhead && start + i + 1 < bt->saves_size)
-	{
-		future = bt->saves + start + i;
-		if (bt_compare_states(state, future))
-			best = i;
-		++i;
-	}
-	return (best);
-}
-
 void	state_revert(t_state *s, const t_savestate *ss)
 {
 	s->sa.size = ss->sa.size;
@@ -75,7 +56,7 @@ static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size
 	{
 		bt->ops[depth] = op_insns[i];
 		stack_op(&parent->sa, &parent->sb, bt->ops[depth]);
-		results[i] = find_future(bt, bt->index + skip, parent);
+		results[i] = bt_find_future(bt, bt->index + skip, parent);
 		if (depth < bt->max_insn_recurse)
 			backtrack(bt, depth + 1, parent, skip + results[i]);
 		state_revert(parent, &parent->saves[depth]);
@@ -105,7 +86,7 @@ static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size
 
 static void	init_bt(t_backtrack *bt, const t_state *s)
 {
-	bt->max_frame_lookhead = 20;
+	bt->max_frame_lookhead = 1000;
 	bt->max_insn_recurse = 1;
 	bt->saves = s->saves;
 	bt->saves_size = s->saves_size;

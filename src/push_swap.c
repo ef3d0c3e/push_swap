@@ -9,15 +9,16 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include <ft_printf.h>
+#include "push_swap.h"
 #include "blk/blk.h"
 #include "sort/sort.h"
 #include "stack/stack.h"
-#include "push_swap.h"
+#include "opti/opti.h"
+
+#include <ft_printf.h>
 #include <limits.h>
 #include <stddef.h>
 
-#include "opti/opti.h"
 
 void basic_tests();
 
@@ -40,8 +41,9 @@ static void ps(const char *name, const t_state *s)
 
 int main(int ac, char **av)
 {
-	t_state	state;
-	size_t	i;
+	t_pivots_data	pivots;
+	t_state			state;
+	size_t			i;
 
 	//basic_tests();
 	//return 0;
@@ -50,7 +52,15 @@ int main(int ac, char **av)
 		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
 		exit(1);
 	}
-	state = state_new(ac - 1);
+
+	pivots = pivots_init((struct s_pivots_cfg) {
+		.temperature_initial = 5.f,
+		.temperature_min = .1f,
+		.temperature_cooling = .95f,
+		.factor_step = 0.01f,
+		.max_tries = 10,
+	});
+	state = state_new(&pivots, 0, ac - 1);
 	i = 1;
 	while (i < (size_t)ac)
 		state.sa.data[state.sa.size++] = atoi(av[i++]);
@@ -60,7 +70,7 @@ int main(int ac, char **av)
 	//op(&state, STACK_OP_PB);
 	sort_stack(&state);
 
-	ps("aft", &state);
+	ps("After Sort", &state);
 	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
 	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
 	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
@@ -75,12 +85,11 @@ int main(int ac, char **av)
 	//state_dump(&state);
 	if (!stack_sorted(&state.sa))
 		ft_printf("SORT FAIL\n\n");
-	return 0;
 	for (size_t j = 0; j < state.op_size; ++j)
 		ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
-	opti(&state);
+	//opti(&state);
 
 	state_free(&state);
 

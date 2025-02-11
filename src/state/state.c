@@ -1,11 +1,10 @@
 #include "state.h"
-#include "blk/blk.h"
-#include "stack/stack.h"
-#include "util.h"
+#include "../util.h"
 #include <ft_printf.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-t_state	state_new(size_t sz)
+t_state	state_new(const t_pivots_data *pivots, uint32_t seed, size_t sz)
 {
 	int	*buf;
 
@@ -25,6 +24,8 @@ t_state	state_new(size_t sz)
 		.saves_size = 0,
 		.saves_cap = 0,
 		.tmp_buffer = buf,
+		.seed = seed,
+		.pivots = pivots,
 	});
 }
 
@@ -39,6 +40,7 @@ void	state_free(t_state *state)
 	stack_free(&state->sb);
 	free(state->ops);
 	free(state->saves);
+	free(state->tmp_buffer);
 }
 
 void	state_dump(t_state *state)
@@ -49,9 +51,4 @@ void	state_dump(t_state *state)
 	while (i < state->op_size)
 		ft_printf("%s\n", stack_op_name(state->ops[i++]));
 	state->op_size = 0;
-}
-
-void	state_pivots(t_state *state, const t_blk *blk, int *p1, int *p2)
-{
-	return blk_quartiles(state, blk, p1, p2);
 }

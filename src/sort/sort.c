@@ -13,55 +13,8 @@
 #include "sort.h"
 #include "../stack/stack.h"
 #include "../blk/blk.h"
-#include "../state.h"
+#include "../state/state.h"
 #include "../util.h"
-
-static void	swap(int *a, int *b)
-{
-    int temp;
-
-	temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
-/* Quicksort partition function */
-static int	qsort_partition(int *arr, int *indices, int low, int high)
-{
-    int	pivot;
-    int	i;
-	int	j;
-
-	pivot = arr[high];
-	i = low - 1;
-	j = low;
-	while (j < high)
-	{
-		if (arr[j] <= pivot)
-		{
-			++i;
-            swap(&arr[i], &arr[j]);
-            swap(&indices[i], &indices[j]);
-		}
-		++j;
-	}
-    swap(&arr[i + 1], &arr[high]);
-    swap(&indices[i + 1], &indices[high]);
-    return (i + 1);
-}
-
-/* Modified quicksort */
-static void	quicksort(int *arr, int *indices, int low, int high)
-{
-	int	pivot;
-
-	if (low < high) {
-		pivot = qsort_partition(arr, indices, low, high);
-		quicksort(arr, indices, low, pivot - 1);
-		quicksort(arr, indices, pivot + 1, high);
-	}
-}
-
 
 /* Replaces values with their index, e.g the smallest value becomes 0, the next smallest 1, etc.. */
 static void	replace_with_index(struct s_stack *sa)

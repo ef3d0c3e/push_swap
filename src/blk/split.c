@@ -1,5 +1,5 @@
 #include "blk.h"
-#include "../state.h"
+#include "../state/state.h"
 #include "ft_printf.h"
 #include "../util.h"
 
@@ -93,66 +93,32 @@ static void ps(const char *name, const t_state *s)
 	ft_printf("\n");
 }
 
-t_split blk_split(t_state *s, t_blk *blk)
+t_split blk_split(t_state *s, t_blk *blk, int p1, int p2)
 {
-	int	pivots[2];
 	t_split	split;
 	int		val;
 	//size_t	i;
 	
-	state_pivots(s, blk, pivots, pivots + 1);
+	//state_pivots(s, blk, pivots, pivots + 1);
 	//ft_dprintf(2, "pivots=(%d, %d)\n", pivots[0], pivots[1]);
-	ps("Before splitting", s);
-	ft_printf("NEXT SPLIT: Q1=%d Q3=%d [%s size=%d]\n\n", pivots[0], pivots[1], blk_dest_name(blk->dest), blk->size);
 	split = init_split(blk);
 	while (blk->size)
 	{
 		val = blk_value(s, blk, 0);
-		if (val >= pivots[1]) // max
-		{ft_printf("MAX Moving %d from %s to %s\n", val, blk_dest_name(blk->dest), blk_dest_name(split.data[2].dest));
+		if (val >= p2) // max
+		{
 			blk_move(s, blk->dest, split.data[2].dest);
 			++split.data[2].size;
 		}
-		else if (val >= pivots[0]) // mid
+		else if (val >= p1) // mid
 		{
-ft_printf("MID Moving %d from %s to %s\n", val, blk_dest_name(blk->dest), blk_dest_name(split.data[1].dest));
 			split.data[1].size += (blk_move(s, blk->dest, split.data[1].dest), 1);
 		}
 		else // min
 		{
-ft_printf("MIN Moving %d from %s to %s\n", val, blk_dest_name(blk->dest), blk_dest_name(split.data[0].dest));
 			split.data[0].size += (blk_move(s, blk->dest, split.data[0].dest), 1);
 		}
 		--blk->size;
-	}
-	return (split);
-}
-
-t_split blk_split_b2a(t_state *s, t_blk *blk)
-{
-	int	pivots[2];
-	t_split	split;
-	int		val;
-	size_t	i;
-	
-	state_pivots(s, blk, pivots, pivots + 1);
-	split = init_split(blk);
-	i = 0;
-	while (i++ < blk->size)
-	{
-		val = blk_value(s, blk, 0);
-		if (val > pivots[1]) // max
-		{
-			split.data[2].size += (blk_move(s, blk->dest, split.data[2].dest), 1);
-		}
-		else if (val > pivots[0]) // mid
-		{
-			split.data[1].size += (blk_move(s, blk->dest, split.data[1].dest), 1);
-		}
-		else // min
-		{
-			split.data[0].size += (blk_move(s, blk->dest, split.data[0].dest), 1);
-		}
 	}
 	return (split);
 }

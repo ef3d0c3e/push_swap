@@ -63,4 +63,14 @@ typedef struct s_backtrack
  */
 int	bt_compare_states(const t_state *s, const t_savestate *ss);
 
+
+/**
+ * @brief Find a corresponding future state to the current state, returns the number of skipped frames
+ *
+ * @param bt The backtracking
+ * @param start Future start index
+ * @param state The state
+ */
+size_t bt_find_future(const t_backtrack *bt, const size_t start, const t_state* state);
+
 #endif // BACKTRACK_H

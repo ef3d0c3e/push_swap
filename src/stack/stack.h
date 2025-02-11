@@ -14,6 +14,8 @@
 
 # include <stdlib.h>
 
+typedef struct s_state	t_state;
+
 /**
  * @brief The stack data structure
  *
@@ -219,5 +221,11 @@ stack_unwind(struct s_stack *sa, struct s_stack *sb, enum e_stack_op op);
  * @returns The name of `op`
  */
 const char	*stack_op_name(enum e_stack_op op);
+
+
+/**
+ * @brief Returns 1 if the instruction has a side effect
+ */
+int	stack_op_useful(const t_state *s, enum e_stack_op op);
 
 #endif // STACK_H
