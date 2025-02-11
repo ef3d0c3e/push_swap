@@ -36,6 +36,28 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 	return (dest);
 }
 
+/* Checks if instruction has a useful side-effect */
+static inline int	is_useful(const t_state *s, enum e_stack_op op)
+{
+	const enum e_stack_op	operands = op & __STACK_OPERAND;
+	const enum e_stack_op	operator = op & __STACK_OPERATOR;
+	int						val;
+
+	val = 0;
+	if (operands & __STACK_OP_SEL_A)
+		val |= ((operator == __STACK_OP_PUSH && s->sb.size != 0)
+			|| (operator == __STACK_OP_ROTATE && s->sa.size > 1)
+			|| (operator == __STACK_OP_REV_ROTATE && s->sa.size > 1)
+			|| (operator == __STACK_OP_SWAP && s->sa.size > 1));
+	if (operands & __STACK_OP_SEL_B)
+		val |= ((operator == __STACK_OP_PUSH && s->sa.size != 0)
+			|| (operator == __STACK_OP_ROTATE && s->sb.size > 1)
+			|| (operator == __STACK_OP_REV_ROTATE && s->sb.size > 1)
+			|| (operator == __STACK_OP_SWAP && s->sb.size > 1));
+	
+	return (val);
+}
+
 
 void	op(t_state *state, enum e_stack_op op)
 {
@@ -44,6 +66,8 @@ void	op(t_state *state, enum e_stack_op op)
 
 	if (!state->saves)
 		state_create_savestate(state);
+	if (!is_useful(state, op))
+		return;
 	if (state->op_size >= state->op_cap)
 	{
 		tmp = malloc(sizeof(op) * ((state->op_cap + !state->op_cap) << 1));
@@ -64,7 +88,7 @@ void	op(t_state *state, enum e_stack_op op)
 	state_create_savestate(state);
 
 	// debug
-	if (0)
+	if (1)
 	{
 		ft_printf("%s\nA: ", stack_op_name(op));
 		i = 0;

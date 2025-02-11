@@ -41,19 +41,16 @@ void	blk_sort_2(t_state *state, t_blk *blk)
 
 void	blk_sort_small(t_state *state, t_blk *blk)
 {
+	ft_printf("|SORT %d %s|\n", blk->size, blk_dest_name(blk->dest));
 	if (blk->size == 1)
 	{
 		blk_move(state, blk->dest, BLK_A_TOP);
 		blk->size -= 1;
 	}
 	else if (blk->size == 2)
-	{
 		blk_sort_2(state, blk);
-	}
 	else if (blk->size == 3)
-	{
 		blk_sort_3(state, blk);
-	}
 }
 
 static inline void pre_sort(t_state *s, t_blk *blk)
@@ -117,7 +114,7 @@ void blk_sort(t_state *s, t_blk *blk)
 	else if (blk->dest == BLK_B_BOT && s->sb.size == blk->size)
 		blk->dest = BLK_B_TOP;
 
-	pre_sort(s, blk);
+	//pre_sort(s, blk);
 	if (blk->size <= 3)
 	{
 		//ft_printf(">sort_small():\n");
@@ -125,7 +122,7 @@ void blk_sort(t_state *s, t_blk *blk)
 		return;
 	}
 	split = blk_split(s, blk);
-	//ft_printf("SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
+	ft_printf(">>>>>>>>>>>SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
 
 	i = 0;
 	while (i < 3)

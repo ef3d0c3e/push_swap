@@ -24,25 +24,13 @@ int	blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset)
 	return (1);
 }
 
-static void ps(const char *name, const t_state *s)
-{
-	ft_printf(" [ STATE: %s ]\n", name);
-	ft_printf("OP | ");
-
-	for (size_t i = 0; i < s->op_size; ++i)
-		ft_printf(" %s", stack_op_name(s->ops[i]));
-
-	ft_printf("\n A | ");
-	for (size_t i = 0; i < s->sa.size; ++i)
-		ft_printf(" %d", s->sa.data[i]);
-	ft_printf("\n B | ");
-	for (size_t i = 0; i < s->sb.size; ++i)
-		ft_printf(" %d", s->sb.data[i]);
-	ft_printf("\n");
+int cmp(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
 }
 
 void	blk_quartiles(const t_state *s, const t_blk *blk, int *q1, int *q3)
 {
+	/*
 	int		max;
 	size_t	i;
 	int		largest;
@@ -102,7 +90,20 @@ void	blk_quartiles(const t_state *s, const t_blk *blk, int *q1, int *q3)
 			++i;
 		}
 		max = largest;
-	}
-	ps("s1", s);
-	ft_printf("Q1=%d Q3=%d\n", *q1, *q3);
+	}*/
+	int *arr = malloc(blk->size * sizeof(int));
+    if (!arr) return;
+
+    // Copy elements
+    for (size_t i = 0; i < blk->size; i++)
+        arr[i] = blk_value(s, blk, i);
+
+    // Sort array (could be replaced with QuickSelect)
+    qsort(arr, blk->size, sizeof(int), cmp);
+
+    // Select Q1 and Q3 based on sorted indices
+    *q1 = arr[blk->size / 4];    // 1st quartile (N/4)
+    *q3 = arr[(3 * blk->size) / 4]; // 3rd quartile (3N/4)
+
+    free(arr);
 }

@@ -44,9 +44,24 @@ typedef struct s_state
 	size_t			op_cap;
 
 
+	/**
+	 * @brief All savestates for this state
+	 */
 	t_savestate		*saves;
+	/**
+	 * @brief Number of savestates
+	 */
 	size_t			saves_size;
+	/**
+	 * @brief Capacity of the savestate array
+	 */
 	size_t			saves_cap;
+
+	/**
+	 * @brief Temporary buffer to speed up pivot compute
+	 */
+	int				*tmp_buffer;
+
 }	t_state;
 
 /**
@@ -71,23 +86,11 @@ void			state_free(t_state *state);
 void			state_dump(t_state *state);
 
 /**
- * @brief Partially clones a sate
- *
- * This function will only clone the stack states.
- *
- * @param state The state to clone
- *
- * @returns The cloned state
- */
-t_state			state_partial_clone(const t_state *state);
-
-/**
  * @brief Inserts a new savestate
  *
  * @param s State to insert a savestate into
  */
 t_savestate		*state_create_savestate(t_state *s);
-
 
 /**
  * @brief Constructs state from saved state

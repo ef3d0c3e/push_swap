@@ -28,6 +28,10 @@ typedef enum e_blk_dest
 
 /**
  * @brief Gets the name of a destination
+ *
+ * This is mostly used for debugging
+ *
+ * @param dest Destination to get the name of
  */
 const char *blk_dest_name(enum e_blk_dest dest);
 
@@ -96,28 +100,42 @@ void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
 
 /**
  * @brief Sorts two elements
+ *
+ * @param state The state
+ * @paramn blk The block to sort
  */
 void	blk_sort_2(t_state *state, t_blk *blk);
 
 /**
  * @brief Sorts three elements
+ *
+ * @param state The state
+ * @paramn blk The block to sort
  */
 void	blk_sort_3(t_state *state, t_blk *blk);
 
 /**
- * @brief Sorts three elements on A top or B top. Order is reversed for B
- */
-void	blk_sort_3_top_for_a(t_state *state, t_blk *blk);
-
-/**
- * @brief Sorts a small number elements on the block
+ * @brief Sorts a small number elements on the block (for N <= 3 elements)
+ *
+ * @param state The state
+ * @paramn blk The block to sort
  */
 void	blk_sort_small(t_state *state, t_blk *blk);
 
+/**
+ * @brief Sort a block by recursively splitting it and calling `blk_sort_small`
+ *
+ * @param state The state
+ * @paramn blk The block to sort
+ */
 void	blk_sort(t_state *state, t_blk *blk);
 
 /**
  * @brief Checks if a block is absolutely sorted
+ *
+ * @param s The state
+ * @param dest The destination
+ * @param offset Start offset of the check
  */
 int		blk_abs_sorted(const t_state *s, enum e_blk_dest dest, size_t offset);
 

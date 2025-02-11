@@ -3,9 +3,18 @@
 #include "stack/stack.h"
 #include "util.h"
 #include <ft_printf.h>
+#include <stdlib.h>
 
 t_state	state_new(size_t sz)
 {
+	int	*buf;
+
+	buf = malloc(sz * sizeof(int));
+	if (!buf)
+	{
+		ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
+		exit(1);
+	}
 	return ((t_state){
 		.sa = stack_new(sz),
 		.sb = stack_new(sz),
@@ -15,6 +24,7 @@ t_state	state_new(size_t sz)
 		.saves = NULL,
 		.saves_size = 0,
 		.saves_cap = 0,
+		.tmp_buffer = buf,
 	});
 }
 
