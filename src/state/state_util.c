@@ -23,6 +23,7 @@ t_state			state_partial_clone(const t_state *s)
 		.saves_cap = (size_t)-1,
 		.tmp_buffer = buf,
 		.seed = s->seed,
+		.annealing_depth = s->annealing_depth,
 		.pivots = s->pivots,
 	});
 }

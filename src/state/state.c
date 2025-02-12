@@ -1,10 +1,9 @@
 #include "state.h"
-#include "../util.h"
-#include <ft_printf.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <ft_printf.h>
 
-t_state	state_new(const t_pivots_data *pivots, uint32_t seed, size_t sz)
+t_state	state_new(const t_pivots_cfg *pivots, uint32_t seed, size_t sz)
 {
 	int	*buf;
 
@@ -25,6 +24,7 @@ t_state	state_new(const t_pivots_data *pivots, uint32_t seed, size_t sz)
 		.saves_cap = 0,
 		.tmp_buffer = buf,
 		.seed = seed,
+		.annealing_depth = 0,
 		.pivots = pivots,
 	});
 }

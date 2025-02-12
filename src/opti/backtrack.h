@@ -2,6 +2,7 @@
 # define BACKTRACK_H
 
 #include "../stack/stack.h"
+#include "opti.h"
 
 typedef struct s_state		t_state;
 typedef struct s_savestate	t_savestate;
@@ -11,17 +12,6 @@ typedef struct s_savestate	t_savestate;
  */
 typedef struct s_backtrack
 {
-	/**
-	 * @brief Number of lookahead frames
-	 */
-	size_t				max_frame_lookhead;
-	/**
-	 * @brief Maximum recursion depth (max 10)
-	 *
-	 * Can be increased for small sorts
-	 */
-	size_t				max_insn_recurse;
-
 	/**
 	 * @brief Reference to the original state's saves
 	 */
@@ -51,6 +41,10 @@ typedef struct s_backtrack
 	 * @brief Current operations
 	 */
 	enum e_stack_op		ops[10];
+	/**
+	 * @brief Optimizer settings
+	 */
+	t_optimizer_cfg		cfg;
 }	t_backtrack;
 
 /**

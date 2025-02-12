@@ -52,83 +52,28 @@ void	blk_sort_small(t_state *state, t_blk *blk)
 		blk_sort_3(state, blk);
 }
 
-static inline void pre_sort(t_state *s, t_blk *blk)
-{
-	while (blk->dest != BLK_A_TOP && blk->size)
-	{
-		if (s->sa.data[0] == blk_value(s, blk, 0) + 1)
-		{
-			blk_move(s, blk->dest, BLK_A_TOP);
-			--blk->size;
-		}
-		else if (blk->size >= 2 && s->sa.data[0] == blk_value(s, blk, 1) + 1)
-		{
-			if (blk->dest == BLK_A_BOT)
-			{
-				op(s, STACK_OP_RRA);
-				op(s, STACK_OP_RRA);
-				op(s, STACK_OP_SA);
-				if (s->sa.data[1] == s->sa.data[0] + 1)
-					--blk->size;
-				else
-					op(s, STACK_OP_RA);
-			}
-			else if (blk->dest == BLK_B_TOP)
-			{
-				op(s, STACK_OP_SB);
-				op(s, STACK_OP_PA);
-				if (s->sa.data[0] == s->sb.data[0] + 1)
-				{
-					op(s, STACK_OP_PA);
-					--blk->size;
-				}
-			}
-			else if (blk->dest == BLK_B_BOT)
-			{
-				op(s, STACK_OP_RRB);
-				op(s, STACK_OP_RRB);
-				op(s, STACK_OP_PA);
-				if (s->sa.data[0] == s->sb.data[0] + 1)
-				{
-					op(s, STACK_OP_PA);
-					--blk->size;
-				}
-				else
-					op(s, STACK_OP_RB);
-			}
-			--blk->size;
-		}
-		else
-			break;
-	}
-}
-
 void blk_sort(t_state *s, t_blk *blk)
 {
 	t_split	split;
 	size_t	i;
-	int		pivots[2];
+	float		pivots[2];
 
 	if (blk->dest == BLK_A_BOT && s->sa.size == blk->size)
 		blk->dest = BLK_A_TOP;
 	else if (blk->dest == BLK_B_BOT && s->sb.size == blk->size)
 		blk->dest = BLK_B_TOP;
 
-	//pre_sort(s, blk);
 	if (blk->size <= 3)
 	{
-		//ft_printf(">sort_small():\n");
 		blk_sort_small(s, blk);
 		return;
 	}
 	pivots_next(s, blk, pivots, pivots + 1);
 	split = blk_split(s, blk, pivots[0], pivots[1]);
-	//ft_printf(">>>>>>>>>>>SPLIT (%d, %d, %d)\n", split.data[0].size, split.data[1].size, split.data[2].size);
 
 	i = 0;
 	while (i < 3)
 	{
-		//ft_printf("BEGIN REC %d [%d/%d]\n", i, split.data[2 - i].size, split.data[2 - i].dest);
 		blk_sort(s, &split.data[2 - i]);
 		++i;
 	}

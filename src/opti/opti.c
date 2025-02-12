@@ -19,24 +19,12 @@ static enum e_stack_op op_insns[] = {
 	STACK_OP_RRR,
 };
 
-static void ps(const char *name, const t_state *s)
-{
-	ft_printf(" [ STATE: %s ]\n", name);
-	ft_printf("OP | ");
-
-	for (size_t i = 0; i < s->op_size; ++i)
-		ft_printf(" %s", stack_op_name(s->ops[i]));
-
-	ft_printf("\n A | ");
-	for (size_t i = 0; i < s->sa.size; ++i)
-		ft_printf(" %d", s->sa.data[i]);
-	ft_printf("\n B | ");
-	for (size_t i = 0; i < s->sb.size; ++i)
-		ft_printf(" %d", s->sb.data[i]);
-	ft_printf("\n");
-}
-
-static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size_t skip)
+static void	backtrack(
+		t_backtrack *bt,
+		size_t depth,
+		t_state *parent,
+		const size_t skip
+		)
 {
 	ssize_t				results[sizeof(op_insns) / sizeof(op_insns[0])];
 	size_t				i;
@@ -49,24 +37,15 @@ static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size
 		bt->ops[depth] = op_insns[i];
 		stack_op(&parent->sa, &parent->sb, bt->ops[depth]);
 		results[i] = bt_find_future(bt, bt->index + skip, parent);
-		if (depth < bt->max_insn_recurse)
+		if (depth < bt->cfg.max_insn_recurse)
 			backtrack(bt, depth + 1, parent, skip + results[i]);
 		state_revert(parent, &parent->saves[depth]);
 		++i;
 	}
-
-	// find best
-	i = 1;
-	max = 0;
+	(void)((i = 1), max = 0);
 	while (i < sizeof(op_insns) / sizeof(op_insns[0]))
-	{
-		if (results[i] > results[max])
-		{
-			max = i;
-		}
-		++i;
-	}
-
+		if (results[i++] > results[max])
+			max = i - 1;
 	if (skip + results[max] > bt->best_skip)
 	{
 		bt->best_skip = skip + results[max];
@@ -76,15 +55,7 @@ static void backtrack(t_backtrack *bt, size_t depth, t_state *parent, const size
 	}
 }
 
-static void	init_bt(t_backtrack *bt, const t_state *s)
-{
-	bt->max_frame_lookhead = 100;
-	bt->max_insn_recurse = 1;
-	bt->saves = s->saves;
-	bt->saves_size = s->saves_size;
-}
-
-void	opti(const t_state *s)
+void	opti(const t_state *s, const t_optimizer_cfg cfg)
 {
 	size_t	i;
 	t_state tmp;
@@ -93,7 +64,9 @@ void	opti(const t_state *s)
 	size_t cnt = 0;
 
 	i = 0;
-	init_bt(&bt, s);
+	bt.cfg = cfg;
+	bt.saves = s->saves;
+	bt.saves_size = s->saves_size;
 	while (i < s->op_size)
 	{
 		bt.best_len = 0;

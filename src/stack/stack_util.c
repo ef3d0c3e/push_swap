@@ -18,6 +18,5 @@ int	stack_op_useful(const t_state *s, enum e_stack_op op)
 			|| (operator == __STACK_OP_ROTATE && s->sb.size > 1)
 			|| (operator == __STACK_OP_REV_ROTATE && s->sb.size > 1)
 			|| (operator == __STACK_OP_SWAP && s->sb.size > 1));
-	
 	return (val);
 }

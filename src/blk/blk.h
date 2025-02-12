@@ -42,6 +42,7 @@ typedef struct s_blk
 {
 	size_t			size;
 	enum e_blk_dest	dest;
+	float			pivots[2];
 }	t_blk;
 
 /**
@@ -76,7 +77,7 @@ typedef union u_split
 /**
  * @brief Splits original block to 3 smaller blocks
  */
-t_split	blk_split(t_state *state, t_blk *blk, int p1, int p2);
+t_split	blk_split(t_state *state, t_blk *blk, float f1, float f2);
 
 /**
  * @brief Moves value from a destination to another destination
@@ -102,7 +103,7 @@ void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
  * @brief Sorts two elements
  *
  * @param state The state
- * @paramn blk The block to sort
+ * @param blk The block to sort
  */
 void	blk_sort_2(t_state *state, t_blk *blk);
 
@@ -110,7 +111,7 @@ void	blk_sort_2(t_state *state, t_blk *blk);
  * @brief Sorts three elements
  *
  * @param state The state
- * @paramn blk The block to sort
+ * @param blk The block to sort
  */
 void	blk_sort_3(t_state *state, t_blk *blk);
 
@@ -118,7 +119,7 @@ void	blk_sort_3(t_state *state, t_blk *blk);
  * @brief Sorts a small number elements on the block (for N <= 3 elements)
  *
  * @param state The state
- * @paramn blk The block to sort
+ * @param blk The block to sort
  */
 void	blk_sort_small(t_state *state, t_blk *blk);
 
@@ -126,7 +127,7 @@ void	blk_sort_small(t_state *state, t_blk *blk);
  * @brief Sort a block by recursively splitting it and calling `blk_sort_small`
  *
  * @param state The state
- * @paramn blk The block to sort
+ * @param blk The block to sort
  */
 void	blk_sort(t_state *state, t_blk *blk);
 

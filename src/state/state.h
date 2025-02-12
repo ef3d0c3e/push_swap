@@ -70,10 +70,13 @@ typedef struct s_state
 	 */
 	uint32_t			seed;
 	/**
+	 * @brief Annealing depth of the current state
+	 */
+	size_t				annealing_depth;
+	/**
 	 * @brief Reference to pivots data
 	 */
-	const t_pivots_data	*pivots;
-
+	const t_pivots_cfg	*pivots;
 }	t_state;
 
 /**
@@ -83,7 +86,7 @@ typedef struct s_state
  * @param sz The size of the stacks in the s_data structure
  * @param seed State's random seed
  */
-t_state			state_new(const t_pivots_data *pivots, uint32_t seed, size_t sz);
+t_state			state_new(const t_pivots_cfg *pivots, uint32_t seed, size_t sz);
 
 /**
  * @brief Creates a partial clone 

@@ -41,7 +41,18 @@ static void ps(const char *name, const t_state *s)
 
 int main(int ac, char **av)
 {
-	t_pivots_data	pivots;
+	const t_pivots_cfg pivots = (t_pivots_cfg) {
+		.temperature_initial = 2.0f,
+		.temperature_min = .1f,
+		.temperature_cooling = .85f,
+		.factor_step = 0.1f,
+		.max_tries = 4,
+		.max_anneal = 2,
+	};
+	const t_optimizer_cfg opti_cfg = (t_optimizer_cfg) {
+		.max_frame_lookhead = 100,
+		.max_insn_recurse = 2,
+	};
 	t_state			state;
 	size_t			i;
 
@@ -53,28 +64,14 @@ int main(int ac, char **av)
 		exit(1);
 	}
 
-	pivots = pivots_init((struct s_pivots_cfg) {
-		.temperature_initial = 0.5f,
-		.temperature_min = .1f,
-		.temperature_cooling = .50f,
-		.factor_step = 0.1f,
-		.max_tries = 10,
-	});
-	state = state_new(&pivots, 0xFFABCDEF, ac - 1);
+	state = state_new(&pivots, 0xB00B1E5, ac - 1);
 	i = 1;
 	while (i < (size_t)ac)
 		state.sa.data[state.sa.size++] = atoi(av[i++]);
 
-	//op(&state, STACK_OP_PB);
-	//op(&state, STACK_OP_PB);
-	//op(&state, STACK_OP_PB);
 	sort_stack(&state);
 
 	ps("After Sort", &state);
-	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
-	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
-	//blk_move(&state, BLK_A_TOP, BLK_B_TOP);
-	//blk_move(&state, BLK_B_BOT, BLK_A_BOT);
 	i = 0;
 	while (i < state.sa.size)
 	{
@@ -89,7 +86,7 @@ int main(int ac, char **av)
 	//	ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
-	//opti(&state);
+	opti(&state, opti_cfg);
 
 	state_free(&state);
 
