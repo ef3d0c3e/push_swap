@@ -47,14 +47,17 @@ void	blk_sort(t_state *s, t_blk *blk)
 {
 	t_split	split;
 	size_t	i;
-	float	pivots[2];
+	int	pivots[2];
 
 	if (blk->dest == BLK_A_BOT && s->sa.size == blk->size)
 		blk->dest = BLK_A_TOP;
 	else if (blk->dest == BLK_B_BOT && s->sb.size == blk->size)
 		blk->dest = BLK_B_TOP;
 	if (blk->size <= 3)
-		return (blk_sort_small(s, blk));
+	{
+		(blk_sort_small(s, blk));
+		return ;
+	}
 	pivots_next(s, blk, pivots, pivots + 1);
 	split = blk_split(s, blk, pivots[0], pivots[1]);
 	i = 0;

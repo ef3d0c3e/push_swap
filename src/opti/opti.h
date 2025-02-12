@@ -24,8 +24,10 @@ typedef struct s_optimizer_cfg
  *
  * @param s The state
  * @param cfg The settings for the optimizer
+ *
+ * @returns The new state simulated from optimized instructions
  */
-void opti(const t_state *s, const t_optimizer_cfg cfg);
+void	opti(const t_state *s, const t_optimizer_cfg cfg);
 
 #endif // OPTI_H
 

@@ -14,6 +14,7 @@
 #include "sort/sort.h"
 #include "stack/stack.h"
 #include "opti/opti.h"
+#include "state/state.h"
 
 #include <ft_printf.h>
 #include <limits.h>
@@ -48,6 +49,7 @@ int main(int ac, char **av)
 		.factor_step = 0.1f,
 		.max_tries = 4,
 		.max_anneal = 2,
+		.max_fast_anneal = 0,
 	};
 	const t_optimizer_cfg opti_cfg = (t_optimizer_cfg) {
 		.max_frame_lookhead = 100,
@@ -56,29 +58,27 @@ int main(int ac, char **av)
 	t_state			state;
 	size_t			i;
 
-	//basic_tests();
-	//return 0;
 	if (ac == 1)
 	{
 		ft_dprintf(2, "Usage: %s NUMBERS...\n", av[0]);
 		exit(1);
 	}
 
-	state = state_new(&pivots, 0xB00B1E5, ac - 1);
+	state = state_new(&pivots, 0xf6c5d704, ac - 1);
 	i = 1;
 	while (i < (size_t)ac)
 		state.sa.data[state.sa.size++] = atoi(av[i++]);
 
 	sort_stack(&state);
 
-	ps("After Sort", &state);
+	//ps("After Sort", &state);
 	i = 0;
 	while (i < state.sa.size)
 	{
 		//ft_printf("%d ", state.sa.data[i]);
 		++i;
 	}
-	ft_printf("SORTED IN %d insn\n", state.op_size);
+	//ft_printf("SORTED IN %d insn\n", state.op_size);
 	//state_dump(&state);
 	if (!stack_sorted(&state.sa))
 		ft_printf("SORT FAIL\n\n");
@@ -86,8 +86,9 @@ int main(int ac, char **av)
 	//	ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
-	opti(&state, opti_cfg);
+	//opti(&state, opti_cfg);
 
+	state_dump(&state);
 	state_free(&state);
 
 	return 0;

@@ -57,13 +57,13 @@ static void	backtrack(
 
 void	opti(const t_state *s, const t_optimizer_cfg cfg)
 {
-	size_t	i;
-	t_state tmp;
+	size_t		i;
+	t_state		tmp;
 	t_backtrack bt;
-
-	size_t cnt = 0;
+	t_state		sim;
 
 	i = 0;
+	sim = state_from_savestate(&s->saves[0]);
 	bt.cfg = cfg;
 	bt.saves = s->saves;
 	bt.saves_size = s->saves_size;
@@ -80,22 +80,18 @@ void	opti(const t_state *s, const t_optimizer_cfg cfg)
 		{
 			i += bt.best_skip;
 			for (size_t j = 0; j < bt.best_len; ++j)
-				cnt += bt.best_ops[j] != STACK_OP_NOP;
-				//ft_printf("|%s\n", stack_op_name(bt.best_ops[j]));
-			//ps("before", &tmp);
-			//ft_printf("i=%d\n", i);
-			//t_state after = state_from_savestate(s->saves + i);
-			//ps("after", &after);
-			//state_free(&after);
+			{
+				if (bt.best_ops[j] != STACK_OP_NOP)
+					op(&sim, bt.best_ops[j]);
+			}
 		}
 		else
 		{
-			//ft_printf(">%s\n", stack_op_name(s->ops[i]));
-			++cnt;
+			op(&sim, s->ops[i]);
 			++i;
 		}
 		state_free(&tmp);
 	}
-	ft_printf("\nreduction = %d\n", cnt);
-
+	state_dump(&sim);
+	state_free(&sim);
 }

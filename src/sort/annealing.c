@@ -1,40 +1,39 @@
 #include "sort.h"
 #include "../state/state.h"
 #include <math.h>
+#include <stdio.h>
 
-// Evaluate the current choice of pivots
-static inline int evaluate_pivots(t_state *state, t_blk blk, float f1, float f2) {
-	t_state	clone;
-	t_split split;
-	size_t	i;
-
-	// Clone state
-	clone = state_partial_clone(state);
-	++clone.annealing_depth;
-	split = blk_split(&clone, &blk, f1, f2);
-
-    // Here you would have logic to compute the instruction count for the chosen pivots
-    // For simplicity, assume `evaluate` returns a number representing the instruction count
-
-	i = 0;
-	while (i < 3)
-	{
-		//ft_printf("BEGIN REC %d [%d/%d]\n", i, split.data[2 - i].size, split.data[2 - i].dest);
-		blk_sort(&clone, &split.data[2 - i]);
-		++i;
-	}
-
-	i = clone.op_size;
-	state_free(&clone);
-    return i;  // Placeholder, replace with your actual calculation
-}
-
-static inline float	get_delta(t_state *s)
+/* Gets a random float within [-1, 1] */
+static inline float	get_random_delta(t_state *s)
 {
 	return ((state_random(s) / (float)UINT32_MAX) - 0.5f) * 2.f;
 }
 
-void annealing_precise(t_state *s, const t_blk	*blk, float *best_f1, float *best_f2)
+/* Evaluate the score of a pivot */
+static inline int	evaluate_pivots(
+		t_state *state,
+		t_blk blk,
+		float f1,
+		float f2
+		)
+{
+	t_state	clone;
+	t_split	split;
+	size_t	i;
+
+	clone = state_partial_clone(state);
+	++clone.annealing_depth;
+	split = blk_split(&clone, &blk, state->tmp_buffer[(int)(f1 * blk.size)],
+			state->tmp_buffer[(int)(f2 * blk.size)]);
+	i = 0;
+	while (i++ < 3)
+		blk_sort(&clone, &split.data[3 - i]);
+	i = clone.op_size;
+	state_free(&clone);
+	return (i);
+}
+
+void	annealing_precise(t_state *s, const t_blk	*blk, float *best_f1, float *best_f2)
 {
 	float f1 = 0.33f, f2 = 0.66;  // Initial pivots
     int best_eval = evaluate_pivots(s, *blk, f1, f2);  // Initial evaluation
@@ -43,12 +42,11 @@ void annealing_precise(t_state *s, const t_blk	*blk, float *best_f1, float *best
 
     float temperature = s->pivots->temperature_initial;
 
-#pragma omp parallel
     while (temperature > s->pivots->temperature_min) {
         for (size_t i = 0; i < s->pivots->max_tries; i++) {
             // Try small random variations
-            float delta_f1 = get_delta(s) * s->pivots->factor_step;
-            float delta_f2 = get_delta(s) * s->pivots->factor_step;
+            float delta_f1 = get_random_delta(s) * s->pivots->factor_step;
+            float delta_f2 = get_random_delta(s) * s->pivots->factor_step;
 
             float new_f1 = best_factor1 + delta_f1;
             float new_f2 = best_factor2 + delta_f2;
@@ -88,25 +86,17 @@ void annealing_precise(t_state *s, const t_blk	*blk, float *best_f1, float *best
     *best_f2 = best_factor2;
 }
 
-void annealing_fast(t_state *s, const t_blk	*blk, float *f1, float *f2)
+void	annealing_fast(t_state *s, const t_blk	*blk, float *f1, float *f2)
 {
-	static const float	pivots[][2] = {
-		{ .25f, .50f  },
-		{ .25f, .66f  },
-		{ .25f, .75f  },
-		{ .33f, .50f  },
-		{ .33f, .66f  },
-		{ .33f, .75f  },
-		{ .50f, .66f  },
-		{ .50f, .75f  },
-		{ .66f, .75f  },
-	};
+	static const float	pivots[][2] = {{.25f, .50f}, {.25f, .66f},
+	{.25f, .75f}, {.33f, .50f}, {.33f, .66f}, {.33f, .75f}, {.50f, .66f},
+	{.50f, .75f}, {.66f, .75f}};
 	size_t				best[2];
 	size_t				score;
 	size_t				i;
 
 	best[0] = 0;
-	best[1] = evaluate_pivots(s, *blk, pivots[best[0]][0], pivots[best[0]][1]);
+	best[1] = evaluate_pivots(s, *blk, pivots[0][0], pivots[0][1]);
 	i = 1;
 	while (i < sizeof(pivots) / sizeof(pivots[0]))
 	{

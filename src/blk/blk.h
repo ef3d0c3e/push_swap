@@ -42,7 +42,6 @@ typedef struct s_blk
 {
 	size_t			size;
 	enum e_blk_dest	dest;
-	float			pivots[2];
 }	t_blk;
 
 /**
@@ -77,7 +76,7 @@ typedef union u_split
 /**
  * @brief Splits original block to 3 smaller blocks
  */
-t_split	blk_split(t_state *state, t_blk *blk, float f1, float f2);
+t_split	blk_split(t_state *state, t_blk *blk, int p1, int p2);
 
 /**
  * @brief Moves value from a destination to another destination
