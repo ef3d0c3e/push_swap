@@ -4,31 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static inline uint32_t	murmur3_32(const uint8_t *key, size_t len, uint32_t seed) {
-    uint32_t	h;
-	size_t		i;
-
-	h = seed;
-	i = 0;
-	while (i < len)
-	{
-        h ^= key[i++];
-        h *= 0x5bd1e995;
-        h ^= h >> 15;
-    }
-    return (h);
-}
-
-static inline uint32_t	histogram_hash(const t_state *s, const t_blk *blk) {
-    int		hist[16] = {0};  // Divide into 16 buckets
-	size_t	i;
-
-	i = 0;
-	while (i < blk->size)
-        hist[(size_t)((float)blk_value(s, blk, i++) / (float)s->sa.capacity * 16.f)]++;  // Bin into buckets
-    return murmur3_32((const uint8_t *)hist, sizeof(hist), 0x49432a43);  // Hash the histogram
-}
-
 void	pivots_next(t_state *s, const t_blk	*blk, float *p1, float *p2)
 {
 	for (size_t i = 0; i < blk->size; ++i)
