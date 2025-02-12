@@ -67,7 +67,7 @@ int main(int ac, char **av)
 
 	omp_lock_t lock;
 	omp_init_lock(&lock);
-#pragma omp parallel
+//#pragma omp parallel
 	for (float f1 = 0.f; f1 <= 1.f; f1 += .01f)
 	{
 		for (float f2 = f1; f2 <= 1.f; f2 += .01f)
@@ -77,6 +77,7 @@ int main(int ac, char **av)
 			printf("%f %f %zu\n", f1, f2, cost);
 			omp_unset_lock(&lock);
 		}
+		printf("\n");
 	}
 	omp_destroy_lock(&lock);
 

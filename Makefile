@@ -1,7 +1,7 @@
 NAME   := push_swap
 CC     := gcc
-CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
-#CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3 -fopenmp -funroll-all-loops
+#CFLAGS := -Wall -Wextra -ggdb -fsanitize
+CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3 -fopenmp
 
 SOURCES := \
 src/blk/split.c  \
@@ -13,7 +13,7 @@ src/stack/stack.c  \
 src/stack/stack_util.c  \
 src/stack/stack_op.c  \
 src/util.c  \
-src/push_swap.c  \
+src/gradient.c  \
 src/opti/opti.c  \
 src/opti/backtrack.c  \
 src/state/state.c  \

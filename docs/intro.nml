@@ -143,7 +143,8 @@ end
 
 # Introduction
 
-*push_swap* is a sorting problem, using a state machine. The state machine requires two 'stacks' to operate and accepts a limited sets of instructions. To get the maximal ranking for this project, you must sort 500 random integers under 4500 instructions. As it stands out, $500 * \log_2{500} \approx 4482$ therefore push_swap will most likely require a `O(n \* log n)` solution.
+*push_swap* is a sorting problem, using a state machine. The state machine requires two 'stacks' to operate and accepts a limited sets of instructions.
+This article is about the optimizations beyond the sorting algorithm.
 
 # The stacks
 
@@ -289,6 +290,35 @@ For the operator selector:
 
 Therefore, operation `pb` is encoded in the following way: ``C, (0b101 << 2) | 0b10``, ``C, 0b101`` represents the push operator, and ``C, 0b10`` represents stack `B`.
 
+The main benefit of this encoding scheme, is to make it easier to write the decoder:
+```C, Instruction decoding code
+void	stack_op(
+		struct s_stack *sa,
+		struct s_stack *sb,
+		enum e_stack_op op)
+{
+	struct s_stack *const	ss[2] = {sa, sb};
+	const enum e_stack_op	operand = op & __STACK_OPERAND;
+	const enum e_stack_op	operator = op & __STACK_OPERATOR;
+	size_t					i;
+
+	i = 0;
+	while (i < 2)
+	{
+		if (!(operand & (1 << i)) && ++i)
+			continue ;
+		else if (operator == __STACK_OP_SWAP && ss[i]->size >= 2)
+			swap_impl(ss[i]);
+		else if (operator == __STACK_OP_ROTATE && ss[i]->size >= 2)
+			rot_impl(ss[i]);
+		else if (operator == __STACK_OP_REV_ROTATE && ss[i]->size >= 2)
+			rrot_impl(ss[i]);
+		else if (operator == __STACK_OP_PUSH && ss[!i]->size >= 1)
+			push_impl(ss[!i], ss[i]);
+		++i;
+	}
+}```
+
 # Algorithm
 
 The basis of the algorithm is a [3 multi-quicksort](https://en.wikipedia.org/wiki/Quicksort#Multi-pivot_quicksort).
@@ -302,6 +332,8 @@ The algorithm takes a block (all the element on A for instance) and split it int
  * `mid`: Values greater than `p2`
 
 Block `max` is moved from A's top to A's bot using `ra`. `mid` is moved over to B's top with `pb`, and `min` is moved to B's bot with `pb rb`.
+
+:: TODO stack visu
 
 
 
@@ -385,6 +417,8 @@ I will discuss all optimizations I have used in this section.
 
 ##{opti_state} Instructions
 
+Instructions are by far the simplest to optimize.
+
 The following is a general optimization technique that works on almost all state-machine problems.
 Essentially it may happen that a substring of instructions produces the same output as another (smaller) substring of instructions.
 For instance:
@@ -418,8 +452,6 @@ a lot of preliminary work.
 Each instruction will produce it's own side effects. The side effects depends on the instruction, but also on the state of the stacks.
 It is important to understand side-effects as they are useful for optimization.
 
-:: TODO
-
 Sometime it may be safe to reorder instructions, as their side effect can be contained:
 Suppose that the following program is valid:
 #+LAYOUT_BEGIN Centered
@@ -435,7 +467,7 @@ Therefore the program can be simplified to the following:
 ### Qantitizing side-effects
 
 Let's say I have an initial program state `state1` (instructions and stacks). I run the algorithm and end up N instructions later at `state2`.
-From those two states, I'd like to be able to reconstruct the string of instructions that is required to reach `state2` from `state1`. Eventually this functions could be tuned to never generate more instructions than what was primarly used to obtain `state2` from `state1`. However, we'd be lucky to find such a function. Because I could just ask it to find the path from original state to the answer directly. However we can get pretty close to it, thanks to one technique: **backtracking bruteforce**.
+From those two states, I'd like to be able to reconstruct the string of instructions that is required to reach `state2` from `state1`. Eventually this functions could be tuned to never generate more instructions than what was primarly used to obtain `state2` from `state1`. However, we'd be lucky to find such a function. Because I could just ask it to find the path from original state to the answer directly.
 
 I'll try to write down the problem so you can see it better.
 When we run the sorting program and looks at the generated instructions.
@@ -448,24 +480,92 @@ It would be nice to have the tools to analyze M in order to determine what chang
 
 Our goal is, given two states: $F_n$ and $F_{n + k}$, find $S = s_1 \circ \cdots \circ s_p$ such that:
  - $F_n  \circ S = F_{n+k}$ meaning that $S$ is a path that goes from $F_n$ to $F_{n + k}$
- - $p < k$ meaning that the path $S$ is smaller than the original path $M$
+ - $p < k$ meaning that the path $S$ is shorter than the original path $M$
 
-In this article I won't go about how S can be analytically constructed. Instead I'll focus on an approximation method
+*In this article I won't go about how S can be analytically constructed. Instead I'll focus on an approximation method.*
 
-#+LAYOUT_BEGIN Centered
-Constructing the ``C, distance(state1, state2)`` function.
-#+LAYOUT_END
+### Optimizing out unwanted side-effects
 
-:: PROB TREE GRAPH
+In order to reduce the number of instructions after sorting, I use a recursive algorithm that will test random instructions.
+Yes, that's right! Using completely random instructions, I'm able to bring the total number of instructions down.
+
+Here's how the algorithm works:
+```C, Instruction optimization algorithm
+def optimize(states, index, present_state, current_score, best_score, best_future):
+	/* Fetch next instruction to 'simulate' */
+	for ins in all instructions:
+		/* Simulate the effect of the instruction */
+		simulated = simulate(present_state, ins)
+
+		/* Find the last state in `states` that corresponds (i.e same stacks) to `simulated` */
+		future = find_future_state(states, index, simulated)
+		current_score += index - future.index
+
+		/* Recursive call to simulate another instruction in the current simulation branch
+		 * Possible optimization: Evaluate if recursion is worth it. For instance, if current_score
+		 * is still 0 after the third recursion, it might be time to stop. */
+		optimize(states, index + 1, future, current_score, best_score, best_future)
+
+		/* Update maximum */
+		if current_score > best_score:
+			best_future = future
+			best_score = current_score```
+
+This algorithm works because we have already sorted the input. So we can check if executing a random instruction is going to skip into a future state of the sorting process.
+
+Consider the following sorting program generated by the quicksort algorithm:
+	* `index = 0`
+	* A: ``C, 0 2 1``
+	* B: (empty)
+	* F: ``Plain Text, ra ra sa`` (this will sort A)
+After executing the first 2 instructions, the program ends up in this state:
+	* `index = 2`
+	* A: ``C, 1 0 2``
+	* B: (empty)
+	* F: ``Plain Text, sa``
+
+However, the `optimize` algorithm would, at one point, have tried the `rra` instruction for `index = 0`.
+When it simulates the effect of `rra`, the algorithm would end up with the same stacks as that of `index = 2`.
+Therefore the algorithm keeps `rra` and skips directly to the final `sa`. Thus reducing the sorting program to F = ``Plain Text, rra sa``.
+
+The key is to also try to do nothing: `nop`. And check if by doing nothing we can advance to a future state of the sorting program.
+This also has the benefit of removing 'useless' instructions. For instance, rotating a stack with < 2 elements.
 
 ## Optimizing quicksort
 
-Quicksort is already as fast as a sorting algorithm can be: `O(n log n)`. At least, it should be according to theory. However we're dealing with tight restrictions of not using more than 4500 steps to sort 500 elements. It should be noted that there are quite a few different way to implement quicksort.
+Quicksort is already as fast as a sorting algorithm can be: `O(n log n)`. At least, it should be according to theory.
+However we're looking to get below 4500 instructions to sort 500 elements. It should be noted that there are quite a few different way to implement quicksort.
 
 ### Better pivots
 
-The 3-location quicksort algorithm I'm using requires 2 pivot to splits in 3 separate blocks. I originally used quartiles (Q1, Q3) for the two pivots.
-This should split in roughly 3 partitions of the same size.
+The 3 multi-quicksort algorithm I'm using requires 2 pivot to split in 3 separate blocks. I originally used quartiles (Q1, Q3) as the two pivots, as they should split in 3 blocks of similar size. But could we choose better values than quartiles?
+
+But before we get to constructing them, we need a way to evaluate them. Since we want to minimize the total number of instructions, we can define the cost of a pivot pair as the following:
+
+```C, Pivots cost function
+def pivots_cost(state, block, pivots):
+	/* Store operation count */
+	current_op_count = state.op_count
+
+	/* Split in 3 using the provided pivots */
+	split = split(state, block, pivots)
+
+	/* Regular sorting logic, derived from the 3-multi-quicksort */
+	sort(split.max)
+	sort(split.mid)
+	sort(split.min)
+
+	/* Return score */
+	return state.op_count - current_op_count```
+
+Here's the result of the cost function for testing out pivots to sort 500 integers:
+
+![heatmap](./heatmap.png)[caption=Pivots heatmap] Cost function values for pivots, tested with 500 random integers. Only the first pivot choice is represented. Other pivots use quartiles (Q1, Q3).
+
+From this we can clearly see that there seems to be a sweet spot around (0.2, 0.6). But using this method to determine the best pivots is unreasonably slow!
+Instead I'm going to introduce a heuristic method that finds 'good enough' pivots.
+
+### Simulated Annealing
 
 # References
 
