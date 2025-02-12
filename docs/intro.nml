@@ -567,6 +567,10 @@ Instead I'm going to introduce a heuristic method that finds 'good enough' pivot
 
 ### Simulated Annealing
 
+When trying to find minimum (or maximum) the [gradient descent](https://en.wikipedia.org/wiki/Gradient_descent) technique is quite popular for it's effectiveness.
+Sadly, it may not work in this case. The cost function may not be differentiable, let alone continuous.
+Also it easily gets stuck on local minima instead of finding the absolute minimum.
+
 # References
 
  * [Push swap quick sort implementation](https://automatic-saltopus-34b.notion.site/push_swap-c15e62229b9541d78fadec4d6aae8b50)
