@@ -31,8 +31,8 @@ int	bt_compare_states(const t_state *s, const t_savestate *ss)
 {
 	if (s->sa.size != ss->sa.size || s->sb.size != ss->sb.size)
 		return (0);
-	return (memeq(s->sa.data, ss->sa.data, s->sa.size)
-		&& memeq(s->sb.data, ss->sb.data, s->sb.size));
+	return (memeq(s->sa.data, ss->sa.data, s->sa.size * sizeof(int))
+		&& memeq(s->sb.data, ss->sb.data, s->sb.size * sizeof(int)));
 }
 
 size_t bt_find_future(const t_backtrack *bt, const size_t start, const t_state* state)

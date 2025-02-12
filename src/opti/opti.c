@@ -19,6 +19,23 @@ static enum e_stack_op op_insns[] = {
 	STACK_OP_RRR,
 };
 
+static void ps(const char *name, const t_state *s)
+{
+	ft_dprintf(2, " [ STATE: %s ]\n", name);
+	ft_dprintf(2, "OP | ");
+
+	for (size_t i = 0; i < s->op_size; ++i)
+		ft_dprintf(2, " %s", stack_op_name(s->ops[i]));
+
+	ft_dprintf(2, "\n A | ");
+	for (size_t i = 0; i < s->sa.size; ++i)
+		ft_dprintf(2, " %d", s->sa.data[i]);
+	ft_dprintf(2, "\n B | ");
+	for (size_t i = 0; i < s->sb.size; ++i)
+		ft_dprintf(2, " %d", s->sb.data[i]);
+	ft_dprintf(2, "\n");
+}
+
 static void	backtrack(
 		t_backtrack *bt,
 		size_t depth,

@@ -36,6 +36,7 @@ static void	replace_with_index(struct s_stack *sa)
 void	sort_stack(t_state *s)
 {
 	replace_with_index(&s->sa);
+	state_create_savestate(s);
 
 	if (stack_sorted(&s->sa) || s->sa.size < 2)
 		return ;

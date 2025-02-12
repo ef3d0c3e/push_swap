@@ -20,26 +20,6 @@
 #include <limits.h>
 #include <stddef.h>
 
-
-void basic_tests();
-
-static void ps(const char *name, const t_state *s)
-{
-	ft_printf(" [ STATE: %s ]\n", name);
-	ft_printf("OP | ");
-
-	for (size_t i = 0; i < s->op_size; ++i)
-		ft_printf(" %s", stack_op_name(s->ops[i]));
-
-	ft_printf("\n A | ");
-	for (size_t i = 0; i < s->sa.size; ++i)
-		ft_printf(" %d", s->sa.data[i]);
-	ft_printf("\n B | ");
-	for (size_t i = 0; i < s->sb.size; ++i)
-		ft_printf(" %d", s->sb.data[i]);
-	ft_printf("\n");
-}
-
 int main(int ac, char **av)
 {
 	const t_pivots_cfg pivots = (t_pivots_cfg) {
@@ -71,7 +51,6 @@ int main(int ac, char **av)
 
 	sort_stack(&state);
 
-	//ps("After Sort", &state);
 	i = 0;
 	while (i < state.sa.size)
 	{
@@ -86,9 +65,9 @@ int main(int ac, char **av)
 	//	ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
-	//opti(&state, opti_cfg);
+	opti(&state, opti_cfg);
 
-	state_dump(&state);
+	//state_dump(&state);
 	state_free(&state);
 
 	return 0;

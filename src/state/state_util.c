@@ -106,8 +106,6 @@ void	op(t_state *state, enum e_stack_op op)
 	enum e_stack_op	*tmp;
 	size_t			i;
 
-	if (!state->saves)
-		state_create_savestate(state);
 	if (!stack_op_useful(state, op))
 		return;
 	if (state->op_size >= state->op_cap)
@@ -128,25 +126,4 @@ void	op(t_state *state, enum e_stack_op op)
 	state->ops[state->op_size++] = op;
 	stack_op(&state->sa, &state->sb, op);
 	state_create_savestate(state);
-
-	// debug
-	if (0)
-	{
-		ft_printf("%s\nA: ", stack_op_name(op));
-		i = 0;
-		while (i < state->sa.size)
-		{
-			ft_printf("%d ", state->sa.data[i]);
-			++i;
-		}
-
-		ft_printf("\nB: ");
-		i = 0;
-		while (i < state->sb.size)
-		{
-			ft_printf("%d ", state->sb.data[i]);
-			++i;
-		}
-		ft_printf("\n-----\n");
-	}
 }
