@@ -563,6 +563,8 @@ Here's the result of the cost function for testing out pivots to sort 500 intege
 ![heatmap](./heatmap.png)[caption=Pivots heatmap] Cost function values for pivots, tested with 500 random integers. Only the first pivot choice is represented. Other pivots use quartiles (Q1, Q3).
 
 From this we can clearly see that there seems to be a sweet spot around (0.2, 0.6). But using this method to determine the best pivots is unreasonably slow!
+Also these are the result for the initial unsorted array. As the data gets partially sorted, optimal pivots may vary a lot.
+We could generate a table and make lookup to it in order to get good pivots, but building such a table requires an entire article of it's own.
 Instead I'm going to introduce a heuristic method that finds 'good enough' pivots.
 
 ### Simulated Annealing
@@ -571,6 +573,33 @@ When trying to find minimum (or maximum) the [gradient descent](https://en.wikip
 Sadly, it may not work in this case. The cost function may not be differentiable, let alone continuous.
 Also it easily gets stuck on local minima instead of finding the absolute minimum.
 
+A similar numerical method to find minima exists and is more reliable at 'not getting stuck on local minima'.
+Introducing [simulated annealing](https://en.wikipedia.org/wiki/Simulated_annealing).
+The main advantage of this method is that no matter what the `cost` function looks like,
+this is guaranded to find good pivots (given the right parameters...).
+But this method is very expesive as it's going to call to our `pivots_cost` function, which may in turn call back to the pivot searching algorithm.
+
+You get the idea, this method is guaranted to find good pivots -- at the cost of being very expensive. However we don't really care about the time it takes to sort, we'd rather minimize the instruction count required for sorting.
+
+### Fine-tuning
+
+In order to pass this assignment, the program must sort 500 elements in less than a minute and use less than 4500 instructions to do so.
+I've manually tested values until I could find set and forget values, that make sure the program always finishes fast enough with good-enough results.
+
+ * ``C, temperature_initial``: ``C, 1.0f``
+
+ * ``C, temperature_min``: ``C, .1f``
+ * ``C, temperature_cooling``: ``C, .95f``
+ Fast cooldown rate
+ * ``C, factor_step``: ``C, 0.15f``
+ Try values over a large neighboorhood
+ * ``C, max_tries``: ``C, 3``
+ Very few tries per temperature cycle
+ * ``C, max_anneal``: ``C, 2``
+ Max annealing recursion depth. Any other value larger than 2 will make it really slow to sort more than 100 elements.
+ * ``C, max_fast_anneal``: ``C, 0``
+
 # References
 
  * [Push swap quick sort implementation](https://automatic-saltopus-34b.notion.site/push_swap-c15e62229b9541d78fadec4d6aae8b50)
+ * [Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing)

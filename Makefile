@@ -13,7 +13,7 @@ src/stack/stack.c  \
 src/stack/stack_util.c  \
 src/stack/stack_op.c  \
 src/util.c  \
-src/gradient.c  \
+src/push_swap.c  \
 src/opti/opti.c  \
 src/opti/backtrack.c  \
 src/state/state.c  \

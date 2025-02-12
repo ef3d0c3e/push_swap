@@ -18,6 +18,7 @@
 
 #include <limits.h>
 #include <stddef.h>
+#include <stdio.h>
 
 static inline int	parse_int(const char *s, int *r)
 {
@@ -59,12 +60,12 @@ int main(int ac, char **av)
 		.temperature_cooling = .95f,
 		.factor_step = 0.15f,
 		.max_tries = 3,
-		.max_anneal = 2,
+		.max_anneal = 0,
 		.max_fast_anneal = 0,
 	};
 	const t_optimizer_cfg opti_cfg = (t_optimizer_cfg) {
 		.max_frame_lookhead = 100,
-		.max_insn_recurse = 2,
+		.max_insn_recurse = 0,
 	};
 	t_state			state;
 	size_t			i;
@@ -85,15 +86,15 @@ int main(int ac, char **av)
 		//ft_printf("%d ", state.sa.data[i]);
 		++i;
 	}
-	ft_printf("SORTED IN %d insn\n", state.op_size);
+	printf("SORTED IN %d insn\n", state.op_size);
 	//state_dump(&state);
 	if (!stack_sorted(&state.sa))
-		ft_printf("SORT FAIL\n\n");
+		printf("SORT FAIL\n\n");
 	//for (size_t j = 0; j < state.op_size; ++j)
 	//	ft_printf("%s\n", stack_op_name(state.ops[j]));
 
 	// run optimizer
-	opti(&state, opti_cfg);
+	//opti(&state, opti_cfg);
 
 	//state_dump(&state);
 	state_free(&state);
