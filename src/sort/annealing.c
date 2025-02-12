@@ -35,14 +35,14 @@ static inline int	evaluate_pivots(
 
 void	annealing_precise(t_state *s, const t_blk	*blk, float *best_f1, float *best_f2)
 {
-	float f1 = 0.33f, f2 = 0.66;  // Initial pivots
+	float f1 = 0.2f, f2 = 0.6f;  // Initial pivots
     int best_eval = evaluate_pivots(s, *blk, f1, f2);  // Initial evaluation
 	//ft_printf("start eval=%d\n", best_eval);
     float best_factor1 = f1, best_factor2 = f2;
 
     float temperature = s->pivots->temperature_initial;
 
-    while (temperature > s->pivots->temperature_min) {
+    while (temperature > s->pivots->temperature_min / (1 + s->annealing_depth )) {
         for (size_t i = 0; i < s->pivots->max_tries; i++) {
             // Try small random variations
             float delta_f1 = get_random_delta(s) * s->pivots->factor_step;

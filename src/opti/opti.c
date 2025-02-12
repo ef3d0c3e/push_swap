@@ -109,6 +109,7 @@ void	opti(const t_state *s, const t_optimizer_cfg cfg)
 		}
 		state_free(&tmp);
 	}
+	ft_printf("After opti: %d\n", sim.op_size);
 	state_dump(&sim);
 	state_free(&sim);
 }

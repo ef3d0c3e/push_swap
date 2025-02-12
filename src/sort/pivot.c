@@ -13,8 +13,8 @@ void	pivots_next(t_state *s, const t_blk	*blk, int *p1, int *p2)
     quicksort(s->tmp_buffer, 0, blk->size - 1);
 
 //printf("hash: [%zu] %x\n", blk->size, histogram_hash(s, blk));
-	f[0] = 0.33;
-	f[1] = 0.66;
+	f[0] = 0.2;
+	f[1] = 0.6;
 	if (s->annealing_depth < s->pivots->max_anneal)
 		annealing_precise(s, blk, f, f + 1);
 	////else if (s->annealing_depth < 2 * s->pivots->max_anneal)
