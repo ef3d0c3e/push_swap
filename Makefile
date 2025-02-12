@@ -1,9 +1,9 @@
 NAME   := push_swap
 CC     := gcc
-CFLAGS := -Wall -Wextra -ggdb -ggdb -fsanitize=address -lm -fopenmp
+CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
+#CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3 -fopenmp -funroll-all-loops
 
 SOURCES := \
-src/blk/blk_util.c \
 src/blk/split.c  \
 src/blk/blk_sort.c  \
 src/blk/blk.c  \
@@ -40,7 +40,7 @@ objs/%.o : %.c
 
 $(NAME): $(OBJECTS) $(LIB_PRINTF_PATH)/$(LIB_PRINTF)
 	$(CC) $(IFLAGS) $(CFLAGS) \
-		$(OBJECTS) $(LFLAGS) -o $(NAME)
+		$(OBJECTS) $(LFLAGS) -o $(NAME) -lm
 
 $(LIB_PRINTF_PATH)/$(LIB_PRINTF):
 	$(MAKE) -C $(LIB_PRINTF_PATH)

@@ -1,7 +1,5 @@
 #include "blk.h"
 #include "../state/state.h"
-#include "../util.h"
-#include <stdio.h>
 
 static inline t_split	init_split(const t_blk *blk, float f1, float f2)
 {

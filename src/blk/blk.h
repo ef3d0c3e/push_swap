@@ -51,12 +51,12 @@ typedef struct s_blk
 int	blk_value(const t_state *s, const t_blk *blk, size_t pos);
 
 /**
- * @brief Gets the maximum value inside the block
- */
-int	blk_max(const t_state *s, const t_blk *blk);
-
-/**
  * @brief Gets the stack from a destination
+ *
+ * @param s State
+ * @param dest Destination to get the stack for
+ *
+ * @returns The stack for dest
  */
 const t_stack	*blk_stack(const t_state *s, enum e_blk_dest dest);
 
