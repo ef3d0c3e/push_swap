@@ -64,8 +64,8 @@ int main(int ac, char **av)
 		.max_fast_anneal = 0,
 	};
 	const t_optimizer_cfg opti_cfg = (t_optimizer_cfg) {
-		.max_frame_lookhead = 100,
-		.max_insn_recurse = 0,
+		.max_frame_lookhead = 50,
+		.max_insn_recurse = 2,
 	};
 	t_state			state;
 	size_t			i;

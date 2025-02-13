@@ -244,15 +244,11 @@ static void	pre_sort_rr(t_state *s, int *limits)
 		op(s, STACK_OP_RB);
 }
 
-void pre(t_state *s)
+void pre(t_state *s, int limits[3])
 {
 	int	i;
 	int	index_a;
-	int limits[3];
 
-	limits[0] = 1;
-	limits[1] = s->sa.capacity / 2;
-	limits[2] = s->sa.capacity - 1;
 
 	i = s->sb.size;
 	while (i < (limits[2] - limits[0]) && s->sa.size)
@@ -276,8 +272,25 @@ void pre(t_state *s)
 void	blk_sort(t_state *s, t_blk *blk)
 {
 	ps("BEF Split", s);
-	
-	pre(s);
+	int pivots[3];
+	int splits = 6;
+
+	pivots[1] = s->sa.capacity * 0.5;
+	int min = splits / 2 - 1;
+	int max = splits / 2 + 1;
+	while (max < splits)
+	{
+		pivots[0] = min * (s->sa.capacity / splits);
+		pivots[2] = max * (s->sa.capacity / splits);
+		pre(s, pivots);
+		++max;
+		--min;
+	}
+
+	pivots[0] = 1;
+	pivots[2] = s->sa.capacity - 1;
+	pre(s, pivots);
+
 	while (s->sb.size)
 	{
 		t_cost best_move = calculate_best_move(s);

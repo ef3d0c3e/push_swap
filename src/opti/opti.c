@@ -3,6 +3,7 @@
 #include "opti.h"
 #include "backtrack.h"
 #include "ft_printf.h"
+#include <stdio.h>
 
 static enum e_stack_op op_insns[] = {
 	STACK_OP_NOP,
@@ -84,6 +85,7 @@ void	opti(const t_state *s, const t_optimizer_cfg cfg)
 	bt.cfg = cfg;
 	bt.saves = s->saves;
 	bt.saves_size = s->saves_size;
+	printf("SS=%zu\n", s->saves_size);
 	while (i < s->op_size)
 	{
 		bt.best_len = 0;
@@ -110,6 +112,6 @@ void	opti(const t_state *s, const t_optimizer_cfg cfg)
 		state_free(&tmp);
 	}
 	ft_printf("After opti: %d\n", sim.op_size);
-	state_dump(&sim);
+	//state_dump(&sim);
 	state_free(&sim);
 }
