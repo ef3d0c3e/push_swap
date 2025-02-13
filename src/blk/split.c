@@ -40,5 +40,12 @@ t_split blk_split(t_state *s, t_blk *blk, int p1, int p2)
 		}
 		--blk->size;
 	}
+	if (blk->dest == BLK_B_TOP)
+	{
+		while (s->sb.size)
+		{
+			blk_move(s, BLK_B_TOP, BLK_A_BOT);
+		}
+	}
 	return (split);
 }

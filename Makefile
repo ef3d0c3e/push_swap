@@ -1,7 +1,7 @@
 NAME   := push_swap
 CC     := gcc
-#CFLAGS := -Wall -Wextra -ggdb -fsanitize
-CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3 -fopenmp
+CFLAGS := -Wall -Wextra -ggdb
+#CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3 -fopenmp
 
 SOURCES := \
 src/blk/split.c  \

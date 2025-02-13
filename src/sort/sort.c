@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <ft_printf.h>
+#include <stdio.h>
 #include "sort.h"
 #include "../stack/stack.h"
 #include "../blk/blk.h"
@@ -38,8 +39,8 @@ void	sort_stack(t_state *s)
 	replace_with_index(&s->sa);
 	state_create_savestate(s);
 
-	if (stack_sorted(&s->sa) || s->sa.size < 2)
-		return ;
+	//if ((stack_sorted(&s->sa) && s->sa.size == s->sa.capacity) || s->sa.size < 2)
+		//return ;
 	//else if (data->sa.size == 2)
 	//	sort_2(data);
 	//else if (data->sa.size == 3)
@@ -51,7 +52,9 @@ void	sort_stack(t_state *s)
 	//else
 		//blk_sort(data);
 	//post_sort_optimization(data);
-	t_blk blk = (t_blk){.dest = BLK_A_TOP, .size = s->sa.size};
+
+
+	t_blk blk = (t_blk){.dest = BLK_B_TOP, .size = s->sb.size};
 	blk_sort(s, &blk);
 }
 

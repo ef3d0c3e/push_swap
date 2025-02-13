@@ -86,9 +86,8 @@ int main(int ac, char **av)
 		//ft_printf("%d ", state.sa.data[i]);
 		++i;
 	}
-	printf("SORTED IN %d insn\n", state.op_size);
-	//state_dump(&state);
-	if (!stack_sorted(&state.sa))
+	printf("SORTED IN %zu insn\n", state.op_size);
+	if (!stack_sorted(&state.sa) || state.sa.size != state.sa.capacity)
 		printf("SORT FAIL\n\n");
 	//for (size_t j = 0; j < state.op_size; ++j)
 	//	ft_printf("%s\n", stack_op_name(state.ops[j]));
