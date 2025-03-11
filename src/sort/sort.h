@@ -46,7 +46,7 @@ typedef struct s_pivots_cfg
 	 *
 	 * @warn This has a huge impact on performances.
 	 *
-	 * When max fast annealing has been reached, defaults pivots (quartiles)
+	 * When max fast annealing has been reached, defaults pivots (0.2, 0.6)
 	 * will be used as a fallback.
 	 */
 	size_t	max_fast_anneal;
@@ -70,6 +70,11 @@ void	quicksort(int *arr, int low, int high);
  */
 void	quicksort_indices(int *arr, int *indices, int low, int high);
 
+/**
+ * @brief Sorting entry point function
+ *
+ * @param s State (initial start after user input)
+ */
 void	sort_stack(t_state *s);
 
 /**
@@ -84,10 +89,23 @@ void	sort_stack(t_state *s);
  */
 void	annealing_precise(t_state *s, const t_blk *blk, float *f1, float *f2);
 
+/**
+ * @brief Performs faster (less precise) heuristics when new calls to
+ * `annealing_precise` would be too expensive
+ *
+ * Settings are controlled by the `t_pivots_cfg` structure
+ *
+ * @param s State to find pivots for
+ * @param blk Block to find pivots for
+ * @param f1 (output) First pivot
+ * @param f2 (output) Second pivot
+ */
 void	annealing_fast(t_state *s, const t_blk *blk, float *f1, float *f2);
 
 /**
  * @brief Gets the next pivots
+ *
+ * Will internally select appropriate pivots base on state's settings
  *
  * @param s State to find pivots for
  * @param blk Block to find pivots for

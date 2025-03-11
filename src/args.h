@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   push_swap.h                                        :+:      :+:    :+:   */
+/*   args.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -9,14 +9,22 @@
 /*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef PUSH_SWAP_H
-# define PUSH_SWAP_H
+#ifndef ARGS_H
+# define ARGS_H
 
 # include "state/state.h"
 
 /**
- * @brief Push swap sort function
+ * @brief Parses arguments and create state from arguments
+ *
+ * @note Will `exit(1)` on failure.
+ *
+ * @param pivots The pivots data, NULL if unused
+ * @param argc Number of arguments (numbers on the stack)
+ * @param argv Arguments (unique positive integer to add to the stack)
+ *
+ * @returns The parsed initial state
  */
-void			sort_stack(t_state *state);
+t_state	parse_args(const t_pivots_cfg *pivots, int argc, char **argv);
 
-#endif // PUSH_SWAP_H
+#endif // ARGS_H

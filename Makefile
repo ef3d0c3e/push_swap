@@ -1,7 +1,7 @@
 NAME   := push_swap
 CC     := gcc
 #CFLAGS := -Wall -Wextra -ggdb -fsanitize
-CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3 -fopenmp
+CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3
 
 SOURCES := \
 src/blk/split.c  \
@@ -13,6 +13,7 @@ src/stack/stack.c  \
 src/stack/stack_util.c  \
 src/stack/stack_op.c  \
 src/util.c  \
+src/args.c  \
 src/push_swap.c  \
 src/opti/opti.c  \
 src/opti/backtrack.c  \
@@ -26,24 +27,22 @@ src/sort/sort_small.c
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))
 
-# Printf library
-LIB_PRINTF_PATH := libs/ft_printf
-LIB_PRINTF_INC := libs/ft_printf/includes
-LIB_PRINTF := libftprintf.a
-
-IFLAGS := -I $(LIB_PRINTF_INC)
-LFLAGS := $(LIB_PRINTF_PATH)/$(LIB_PRINTF)
-
-objs/%.o : %.c
+objs/%.o: IFLAGS += -I./libs/ft_printf/includes
+objs/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) $(IFLAGS) $(CFLAGS) -c $< -o $@
 
-$(NAME): $(OBJECTS) $(LIB_PRINTF_PATH)/$(LIB_PRINTF)
+# Push swap main target
+$(NAME): LFLAGS += $(LIB_PRINTF)
+$(NAME): $(OBJECTS) $(LIB_PRINTF)
 	$(CC) $(IFLAGS) $(CFLAGS) \
 		$(OBJECTS) $(LFLAGS) -o $(NAME) -lm
 
-$(LIB_PRINTF_PATH)/$(LIB_PRINTF):
-	$(MAKE) -C $(LIB_PRINTF_PATH)
+# ft_printf
+LIB_PRINTF := ./libs/ft_printf/libftprintf.a
+$(LIB_PRINTF):
+	echo "Building libprintf..."
+	$(MAKE) -C $(dir $(LIB_PRINTF))
 
 .PHONY: all
 all: $(NAME)
