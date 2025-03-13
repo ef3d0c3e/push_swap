@@ -1,8 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   backtrack.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #ifndef BACKTRACK_H
 # define BACKTRACK_H
 
-#include "../stack/stack.h"
-#include "opti.h"
+# include "../stack/stack.h"
+# include "opti.h"
 
 typedef struct s_state		t_state;
 typedef struct s_savestate	t_savestate;
@@ -55,16 +66,18 @@ typedef struct s_backtrack
  *
  * @returns 1 If both states have the same stacks
  */
-int	bt_compare_states(const t_state *s, const t_savestate *ss);
-
+int
+bt_compare_states(const t_state *s, const t_savestate *ss);
 
 /**
- * @brief Find a corresponding future state to the current state, returns the number of skipped frames
+ * @brief Find a corresponding future state to the current state, returns the
+ * number of skipped frames
  *
  * @param bt The backtracking
  * @param start Future start index
  * @param state The state
  */
-size_t bt_find_future(const t_backtrack *bt, const size_t start, const t_state* state);
+size_t
+bt_find_future(const t_backtrack *bt, const size_t start, const t_state *state);
 
 #endif // BACKTRACK_H

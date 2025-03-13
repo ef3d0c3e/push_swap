@@ -14,9 +14,9 @@
 #include "../stack/stack.h"
 #include "../blk/blk.h"
 #include "../state/state.h"
-#include "../util.h"
 
-/* Replaces values with their index, e.g the smallest value becomes 0, the next smallest 1, etc.. */
+/* Replaces values with their index, e.g the smallest value becomes 0, the next
+ * smallest 1, etc.. */
 static void	replace_with_index(struct s_stack *sa)
 {
 	int		*indices;
@@ -35,24 +35,12 @@ static void	replace_with_index(struct s_stack *sa)
 
 void	sort_stack(t_state *s)
 {
+	t_blk	blk;
+
 	replace_with_index(&s->sa);
 	state_create_savestate(s);
-
 	if (stack_sorted(&s->sa) || s->sa.size < 2)
 		return ;
-	//else if (data->sa.size == 2)
-	//	sort_2(data);
-	//else if (data->sa.size == 3)
-	//	sort_3(data);
-	//else if (data->sa.size == 4)
-	//	sort_4(data);
-	//else if (data->sa.size == 5)
-	//	sort_5(data);
-	//else
-		//blk_sort(data);
-	//post_sort_optimization(data);
-	t_blk blk = (t_blk){.dest = BLK_A_TOP, .size = s->sa.size};
+	blk = (t_blk){.dest = BLK_A_TOP, .size = s->sa.size};
 	blk_sort(s, &blk);
 }
-
-

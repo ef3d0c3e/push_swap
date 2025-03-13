@@ -203,7 +203,8 @@ stack_op(struct s_stack *sa, struct s_stack *sb, enum e_stack_op op);
  *
  * See @ref stack_op for more informations about operations.
  *
- * This function can be called after any stack_op(). In order to guarantee this function produces valid output,
+ * This function can be called after any stack_op(). In order to guarantee this
+ * function produces valid output,
  * invalid push must not happen in the program.
  *
  * @param sa Stack A
@@ -220,12 +221,13 @@ stack_unwind(struct s_stack *sa, struct s_stack *sb, enum e_stack_op op);
  *
  * @returns The name of `op`
  */
-const char	*stack_op_name(enum e_stack_op op);
-
+const char
+*stack_op_name(enum e_stack_op op);
 
 /**
  * @brief Returns 1 if the instruction has a side effect
  */
-int	stack_op_useful(const t_state *s, enum e_stack_op op);
+int
+stack_op_useful(const t_state *s, enum e_stack_op op);
 
 #endif // STACK_H

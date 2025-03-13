@@ -1,7 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   backtrack.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "backtrack.h"
 #include "../state/state.h"
 
-static inline int	memeq(const void *l, const void *r, size_t N)
+/**
+ * @brief Compares l and r
+ */
+static inline int
+	memeq(const void *l, const void *r, size_t N)
 {
 	const unsigned char	*end = (unsigned char*)r + N;
 	const unsigned char	*wl;
@@ -9,7 +24,7 @@ static inline int	memeq(const void *l, const void *r, size_t N)
 
 	wl = l;
 	wr = r;
-	while (end - wr >= (long int)sizeof(unsigned long int))
+	while (end - wr >= (long int) sizeof(unsigned long int))
 	{
 		if (*(unsigned long int *)wl != *(const unsigned long int *)wr)
 			return (0);
@@ -20,14 +35,14 @@ static inline int	memeq(const void *l, const void *r, size_t N)
 	{
 		if (*wl != *wr)
 			return (0);
-
 		++wl;
 		++wr;
 	}
 	return (1);
 }
 
-int	bt_compare_states(const t_state *s, const t_savestate *ss)
+int
+	bt_compare_states(const t_state *s, const t_savestate *ss)
 {
 	if (s->sa.size != ss->sa.size || s->sb.size != ss->sb.size)
 		return (0);
@@ -35,7 +50,11 @@ int	bt_compare_states(const t_state *s, const t_savestate *ss)
 		&& memeq(s->sb.data, ss->sb.data, s->sb.size * sizeof(int)));
 }
 
-size_t bt_find_future(const t_backtrack *bt, const size_t start, const t_state* state)
+size_t
+	bt_find_future(
+		const t_backtrack *bt,
+		const size_t start,
+		const t_state *state)
 {
 	const t_savestate	*future;
 	size_t				i;

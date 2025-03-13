@@ -1,9 +1,21 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   state.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "state.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <ft_printf.h>
 
-t_state	state_new(const t_pivots_cfg *pivots, uint32_t seed, size_t sz)
+t_state
+	state_new(const t_pivots_cfg *pivots, uint32_t seed, size_t sz)
 {
 	int	*buf;
 
@@ -29,7 +41,8 @@ t_state	state_new(const t_pivots_cfg *pivots, uint32_t seed, size_t sz)
 	});
 }
 
-void	state_free(t_state *state)
+void
+	state_free(t_state *state)
 {
 	while (state->saves_size--)
 	{
@@ -43,7 +56,8 @@ void	state_free(t_state *state)
 	free(state->tmp_buffer);
 }
 
-void	state_dump(t_state *state)
+void
+	state_dump(t_state *state)
 {
 	size_t	i;
 
@@ -51,4 +65,19 @@ void	state_dump(t_state *state)
 	while (i < state->op_size)
 		ft_printf("%s\n", stack_op_name(state->ops[i++]));
 	state->op_size = 0;
+}
+
+uint32_t
+	state_random(t_state *s)
+{
+	uint32_t	x;
+	uint32_t	tmp;
+
+	x = s->seed;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+	tmp = s->seed;
+	s->seed = x;
+	return (tmp);
 }

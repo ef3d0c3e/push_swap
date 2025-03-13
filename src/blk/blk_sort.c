@@ -1,7 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   blk_sort.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "blk.h"
 #include "../util.h"
 
-void	blk_sort_2(t_state *state, t_blk *blk)
+void
+	blk_sort_2(t_state *state, t_blk *blk)
 {
 	const int	u = blk_value(state, blk, 0);
 	const int	v = blk_value(state, blk, 1);
@@ -30,7 +42,8 @@ void	blk_sort_2(t_state *state, t_blk *blk)
 	blk->size -= 2;
 }
 
-void	blk_sort_small(t_state *state, t_blk *blk)
+void
+	blk_sort_small(t_state *state, t_blk *blk)
 {
 	if (blk->size == 1)
 	{
@@ -43,11 +56,12 @@ void	blk_sort_small(t_state *state, t_blk *blk)
 		blk_sort_3(state, blk);
 }
 
-void	blk_sort(t_state *s, t_blk *blk)
+void
+	blk_sort(t_state *s, t_blk *blk)
 {
 	t_split	split;
 	size_t	i;
-	int	pivots[2];
+	int		pivots[2];
 
 	if (blk->dest == BLK_A_BOT && s->sa.size == blk->size)
 		blk->dest = BLK_A_TOP;

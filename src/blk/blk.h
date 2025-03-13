@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   blk.h                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #ifndef BLK_H
 # define BLK_H
 
@@ -24,7 +35,7 @@ typedef enum e_blk_dest
 	BLK_A_BOT = __BLK_A | __BLK_BOT, // 01
 	BLK_B_TOP = __BLK_B | __BLK_TOP, // 10
 	BLK_B_BOT = __BLK_B | __BLK_BOT, // 11
-} t_blk_dest;
+}	t_blk_dest;
 
 /**
  * @brief Gets the name of a destination
@@ -33,7 +44,8 @@ typedef enum e_blk_dest
  *
  * @param dest Destination to get the name of
  */
-const char *blk_dest_name(enum e_blk_dest dest);
+const char
+*blk_dest_name(enum e_blk_dest dest);
 
 /**
  * @brief Block
@@ -47,7 +59,8 @@ typedef struct s_blk
 /**
  * @brief Gets the value at a given position
  */
-int	blk_value(const t_state *s, const t_blk *blk, size_t pos);
+int
+blk_value(const t_state *s, const t_blk *blk, size_t pos);
 
 /**
  * @brief Gets the stack from a destination
@@ -57,7 +70,8 @@ int	blk_value(const t_state *s, const t_blk *blk, size_t pos);
  *
  * @returns The stack for dest
  */
-const t_stack	*blk_stack(const t_state *s, enum e_blk_dest dest);
+const t_stack
+*blk_stack(const t_state *s, enum e_blk_dest dest);
 
 /**
  * @brief Split of three blocks created from single block
@@ -76,7 +90,8 @@ typedef union u_split
 /**
  * @brief Splits original block to 3 smaller blocks
  */
-t_split	blk_split(t_state *state, t_blk *blk, int p1, int p2);
+t_split
+blk_split(t_state *state, t_blk *blk, int p1, int p2);
 
 /**
  * @brief Moves value from a destination to another destination
@@ -96,7 +111,8 @@ t_split	blk_split(t_state *state, t_blk *blk, int p1, int p2);
  * | TOP B | pa      | pa   ra |   x    |   rb    |
  * | BOT B | rrb  pa |rrb pa ra| rrb    |    x    |
  */
-void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
+void
+blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
 
 /**
  * @brief Sorts two elements
@@ -104,7 +120,8 @@ void	blk_move(t_state *state, enum e_blk_dest from, enum e_blk_dest to);
  * @param state The state
  * @param blk The block to sort
  */
-void	blk_sort_2(t_state *state, t_blk *blk);
+void
+blk_sort_2(t_state *state, t_blk *blk);
 
 /**
  * @brief Sorts three elements

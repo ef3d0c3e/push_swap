@@ -1,7 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   split.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "blk.h"
 #include "../state/state.h"
 
-static inline t_split	init_split(const t_blk *blk)
+static inline t_split
+	init_split(const t_blk *blk)
 {
 	return ((t_split){
 		.data = {
@@ -14,7 +26,8 @@ static inline t_split	init_split(const t_blk *blk)
 	}});
 }
 
-t_split blk_split(t_state *s, t_blk *blk, int p1, int p2)
+t_split
+	blk_split(t_state *s, t_blk *blk, int p1, int p2)
 {
 	t_split	split;
 	int		val;
@@ -23,17 +36,17 @@ t_split blk_split(t_state *s, t_blk *blk, int p1, int p2)
 	while (blk->size)
 	{
 		val = blk_value(s, blk, 0);
-		if (val >= p2) // max
+		if (val >= p2)
 		{
 			blk_move(s, blk->dest, split.data[2].dest);
 			++split.data[2].size;
 		}
-		else if (val >= p1) // mid
+		else if (val >= p1)
 		{
 			blk_move(s, blk->dest, split.data[1].dest);
 			++split.data[1].size;
 		}
-		else // min
+		else
 		{
 			blk_move(s, blk->dest, split.data[0].dest);
 			++split.data[0].size;

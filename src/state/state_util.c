@@ -1,8 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   state_util.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "state.h"
 #include "../util.h"
 #include <ft_printf.h>
 
-t_state			state_partial_clone(const t_state *s)
+t_state
+	state_partial_clone(const t_state *s)
 {
 	int	*buf;
 
@@ -28,17 +40,9 @@ t_state			state_partial_clone(const t_state *s)
 	});
 }
 
-t_state	state_from_savestate(const t_savestate	*save)
+t_state
+	state_from_savestate(const t_savestate	*save)
 {
-	/*
-	enum e_stack_op	*ops;
-
-	ops = malloc(save->id * sizeof(enum e_stack_op));
-	if (!ops)
-	{
-		ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
-		exit(1);
-	}*/
 	return ((t_state){
 		.sa = stack_clone(&save->sa),
 		.sb = stack_clone(&save->sb),
@@ -51,7 +55,8 @@ t_state	state_from_savestate(const t_savestate	*save)
 	});
 }
 
-void	state_create_savestate(t_state *s)
+void
+	state_create_savestate(t_state *s)
 {
 	t_savestate	*new;
 
@@ -59,7 +64,8 @@ void	state_create_savestate(t_state *s)
 		return ;
 	if (!s->saves || s->saves_cap == s->saves_size)
 	{
-		new = malloc(sizeof(t_savestate) * ((s->saves_cap + !s->saves_cap) << 1));
+		new = malloc(sizeof(t_savestate)
+				* ((s->saves_cap + !s->saves_cap) << 1));
 		if (!new)
 		{
 			ft_dprintf(2, "%s: malloc() failed\n", __FUNCTION__);
@@ -79,7 +85,8 @@ void	state_create_savestate(t_state *s)
 	++s->saves_size;
 }
 
-void	state_revert(t_state *s, const t_savestate *ss)
+void
+	state_revert(t_state *s, const t_savestate *ss)
 {
 	s->sa.size = ss->sa.size;
 	s->sb.size = ss->sb.size;
@@ -87,27 +94,14 @@ void	state_revert(t_state *s, const t_savestate *ss)
 	ft_memcpy(s->sb.data, ss->sb.data, ss->sb.size * sizeof(int));
 }
 
-uint32_t	state_random(t_state *s)
-{
-    uint32_t	x;
-    uint32_t	tmp;
-
-	x = s->seed;
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
-	tmp = s->seed;
-	s->seed = x;
-    return (tmp);
-}
-
-void	op(t_state *state, enum e_stack_op op)
+void
+	op(t_state *state, enum e_stack_op op)
 {
 	enum e_stack_op	*tmp;
 	size_t			i;
 
 	if (!stack_op_useful(state, op))
-		return;
+		return ;
 	if (state->op_size >= state->op_cap)
 	{
 		tmp = malloc(sizeof(op) * ((state->op_cap + !state->op_cap) << 1));

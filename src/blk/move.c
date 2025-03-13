@@ -1,14 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   move.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "blk.h"
-#include "../stack/stack.h"
 #include "../util.h"
-#include "ft_printf.h"
-#include <stdint.h>
 
-void	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
+void
+	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
 {
 	const uint8_t	id = (from << 2) | to;
 
-	//ft_printf("move %s->%s\n", blk_dest_name(from), blk_dest_name(to));
 	if (((from & __BLK_SEL) == __BLK_A && !s->sa.size)
 		|| ((from & __BLK_SEL) == __BLK_B && !s->sb.size))
 		return ;

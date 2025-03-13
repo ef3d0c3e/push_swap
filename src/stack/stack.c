@@ -38,7 +38,7 @@ void	stack_free(struct s_stack *s)
 
 struct s_stack	stack_clone(const struct s_stack *s)
 {
-	int *start;
+	int	*start;
 
 	start = malloc(3 * s->capacity * sizeof(int));
 	if (!start)

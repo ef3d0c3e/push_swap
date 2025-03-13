@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sort.h                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgamba <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/04 11:54:01 by lgamba            #+#    #+#             */
+/*   Updated: 2024/11/05 17:50:12 by lgamba           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #ifndef SORT_H
 # define SORT_H
 
@@ -41,15 +52,6 @@ typedef struct s_pivots_cfg
 	 * When max annealing has been reached, a faster algorithm will be used
 	 */
 	size_t	max_anneal;
-	/**
-	 * @brief Max fast anealing depth
-	 *
-	 * @warn This has a huge impact on performances.
-	 *
-	 * When max fast annealing has been reached, defaults pivots (0.2, 0.6)
-	 * will be used as a fallback.
-	 */
-	size_t	max_fast_anneal;
 }	t_pivots_cfg;
 
 /**
@@ -90,19 +92,6 @@ void	sort_stack(t_state *s);
 void	annealing_precise(t_state *s, const t_blk *blk, float *f1, float *f2);
 
 /**
- * @brief Performs faster (less precise) heuristics when new calls to
- * `annealing_precise` would be too expensive
- *
- * Settings are controlled by the `t_pivots_cfg` structure
- *
- * @param s State to find pivots for
- * @param blk Block to find pivots for
- * @param f1 (output) First pivot
- * @param f2 (output) Second pivot
- */
-void	annealing_fast(t_state *s, const t_blk *blk, float *f1, float *f2);
-
-/**
  * @brief Gets the next pivots
  *
  * Will internally select appropriate pivots base on state's settings
@@ -113,6 +102,5 @@ void	annealing_fast(t_state *s, const t_blk *blk, float *f1, float *f2);
  * @param p2 (output) Second pivot value
  */
 void	pivots_next(t_state *s, const t_blk	*blk, int *p1, int *p2);
-
 
 #endif // SORT_H

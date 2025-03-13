@@ -1,7 +1,7 @@
 NAME   := push_swap
 CC     := gcc
-#CFLAGS := -Wall -Wextra -ggdb -fsanitize
-CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3
+CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
+#CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3
 
 SOURCES := \
 src/blk/split.c  \
@@ -14,7 +14,6 @@ src/stack/stack_util.c  \
 src/stack/stack_op.c  \
 src/util.c  \
 src/args.c  \
-src/push_swap.c  \
 src/opti/opti.c  \
 src/opti/backtrack.c  \
 src/state/state.c  \
@@ -22,8 +21,7 @@ src/state/state_util.c  \
 src/sort/pivot.c  \
 src/sort/quicksort.c  \
 src/sort/sort.c  \
-src/sort/annealing.c  \
-src/sort/sort_small.c
+src/sort/annealing.c
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))
 
@@ -34,9 +32,16 @@ objs/%.o: %.c
 
 # Push swap main target
 $(NAME): LFLAGS += $(LIB_PRINTF)
-$(NAME): $(OBJECTS) $(LIB_PRINTF)
+$(NAME): OBJECTS += ./objs/src/push_swap.o
+$(NAME): $(OBJECTS) ./objs/src/push_swap.o $(LIB_PRINTF)
 	$(CC) $(IFLAGS) $(CFLAGS) \
 		$(OBJECTS) $(LFLAGS) -o $(NAME) -lm
+
+checker: LFLAGS += $(LIB_PRINTF)
+checker: OBJECTS += ./objs/src/checker.o
+checker: $(OBJECTS) ./objs/src/checker.o $(LIB_PRINTF)
+	$(CC) $(IFLAGS) $(CFLAGS) \
+		$(OBJECTS) $(LFLAGS) -o $@ -lm
 
 # ft_printf
 LIB_PRINTF := ./libs/ft_printf/libftprintf.a
@@ -55,6 +60,7 @@ clean:
 .PHONY: fclean
 fclean: clean
 	$(RM) $(NAME)
+	$(RM) checker
 
 .PHONY: re
 re: fclean all
