@@ -1,11 +1,15 @@
-@html.page_title = Introduction to push_swap
+@html.page_title = Push swap in 3500 instructions
 @html.css = ./style.css
+
+#+LAYOUT_BEGIN Centered
+#*+ Push Swap in 3500 instructions
+#+LAYOUT_END
 
 #+TABLE_OF_CONTENT Index
 
 @@style.section = {
 	"link_pos": "None",
-	"link": ["a", "b", "c"]
+	"link": ["", "", ""]
 }
 
 @tex.main.fontsize = 9
@@ -137,16 +141,13 @@ function g_stacks(label, first, second)
 end
 >@
 
-#+LAYOUT_BEGIN Centered
-*Push_swap in 3500 instructions*
-#+LAYOUT_END
-
 # Introduction
 
 *push_swap* is a sorting problem, using a state machine. The state machine requires two 'stacks' to operate and accepts a limited sets of instructions.
+The goal of the program is to sort the initial stacks using the fewest number of instructions.
 This article is about the optimizations beyond the sorting algorithm.
 
-# The stacks
+## The stacks
 
 The original problem mentions the use of two stacks. While they can be represented as stacks, the instructions lets us manipulate them as if they were 'circular'.
 In fact the rotate and reverse rotate operation lets us access the bottom of the stack easily.
@@ -165,7 +166,9 @@ Therefore, I've implemented my deque using a constant buffer of size $3 \times N
 
 As the buffer has size $3 \times N$, the expensive ``C, memcpy`` happens once every $N$ rotates or reverse-rotates. Which amortizes it's cost, rendering the add/remove to front/back operations `O(1)`.
 
-# Instruction set
+## Instruction set
+
+Push_swap accepts a total of 11 differnt instructions. Of those 3 are aliases that perform 2 instructions, leaving us with a total of 8 different instructions to work with.
 
 Here are the instructions for our state machine:
 
@@ -327,14 +330,12 @@ out [this article](https://automatic-saltopus-34b.notion.site/push_swap-c15e6222
 for details about implementation.
 
 The algorithm takes a block (all the element on A for instance) and split it into 3 smaller blocks according to 2 pivots `(p1, p2)`:
- * `min`: Values smaller than `p1`
- * `max`: Values between `p1` and `p2`
- * `mid`: Values greater than `p2`
+ * Block `min`: Values smaller than `p1`
+ * Block `max`: Values between `p1` and `p2`
+ * Block `mid`: Values greater than `p2`
 
 Block `max` is moved from A's top to A's bot using `ra`. `mid` is moved over to B's top with `pb`, and `min` is moved to B's bot with `pb rb`.
-
-:: TODO stack visu
-
+This operation is repeated until each individual block is small enough (``C, size <= 3``) to be sorted in-place.
 
 
 ## Small sorting
@@ -367,49 +368,6 @@ So in total 24 cases for size 3. Then 8 for size 2, and 1 for size 1.
 
 Another possible way to handle the 3-sort is to use the 2-sort function (which is way shorter). Then handle the special cases where the 2-sort function would not be enough.
 However there would be cases where this would generate more instructions, so I opted for the table method. Needless to say, I had to double-check, then triple-check that the values inside the table are correct.
-
-# Utility
-
-## Moving values
-
-Push_swap required me to move values from one place to another. I found that writing a ``C,blk_move`` function that does it is very handy.
-
-Here's the table that tells us what moves are required to move values (row: *move from*, columns: *move to*):
-|:talign=center: |  ``TOP A``  |  ``BOT A``  | ``TOP B``  |  ``BOT B``  |
-| ``TOP A``      |             |**    ra   **|**  pb    **|** pb   rb **|
-| ``BOT A``      |**  rra    **|**         **|**rra  pb **|**rra pb rb**|
-| ``TOP B``      |** pa      **|** pa   ra **|**        **|**   rb    **|
-| ``BOT B``      |** rrb  pa **|**rrb pa ra**|** rrb    **|**         **|
-
-Using this table, I implement the following move function that moves from any location to any other location:
-
-```C, Move function
-void	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
-{
-	const uint8_t	id = (from << 2) | to;
-
-	/* Check if move is legal */
-	if (((from & __BLK_SEL) == __BLK_A && !s->sa.size)
-		|| ((from & __BLK_SEL) == __BLK_B && !s->sb.size))
-		return ;
-	/* Move table */
-	(void)((!(id % 5))
-		|| (id == 1 && (op(s, STACK_OP_RA), 1))
-		|| (id == 2 && (op(s, STACK_OP_PB), 1))
-		|| (id == 3 && (op(s, STACK_OP_PB), op(s, STACK_OP_RB), 1))
-		|| (id == 4 && (op(s, STACK_OP_RRA), 1))
-		|| (id == 6 && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB), 1))
-		|| (id == 7 && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB),
-			op(s, STACK_OP_RB), 1))
-		|| (id == 8 && (op(s, STACK_OP_PA), 1))
-		|| (id == 9 && (op(s, STACK_OP_PA), op(s, STACK_OP_RA), 1))
-		|| (id == 11 && (op(s, STACK_OP_RB), 1))
-		|| (id == 12 && (op(s, STACK_OP_RRB), op(s, STACK_OP_PA), 1))
-		|| (id == 13 && (op(s, STACK_OP_RRB), op(s, STACK_OP_PA),
-			op(s, STACK_OP_RA), 1))
-		|| (id == 14 && (op(s, STACK_OP_RRB), 1)));
-}
-```
 
 # Optimizations
 
@@ -464,26 +422,6 @@ Therefore the program can be simplified to the following:
 ``Plain Text, ra ss``
 #+LAYOUT_END
 
-### Qantitizing side-effects
-
-Let's say I have an initial program state `state1` (instructions and stacks). I run the algorithm and end up N instructions later at `state2`.
-From those two states, I'd like to be able to reconstruct the string of instructions that is required to reach `state2` from `state1`. Eventually this functions could be tuned to never generate more instructions than what was primarly used to obtain `state2` from `state1`. However, we'd be lucky to find such a function. Because I could just ask it to find the path from original state to the answer directly.
-
-I'll try to write down the problem so you can see it better.
-When we run the sorting program and looks at the generated instructions.
-I call $F_n = (A_n, B_n)$, the state of the program after executing $n$ instruction.
-When $F_n$ is combined with the n-th instruction, $OP_n$, we obtain the next state: $F_n \circ OP_n = F_{n + 1}$.
-This operation is repeated until the program is out of instructions, after which it halts.
-
-From having already found a push_swap solution, we can construct $M = m_1 \circ \cdots \circ m_k$ such that $F_n \circ M = F_{n+k}$.
-It would be nice to have the tools to analyze M in order to determine what changes are required to go from $F_n$ to $F_{n+k}$.
-
-Our goal is, given two states: $F_n$ and $F_{n + k}$, find $S = s_1 \circ \cdots \circ s_p$ such that:
- - $F_n  \circ S = F_{n+k}$ meaning that $S$ is a path that goes from $F_n$ to $F_{n + k}$
- - $p < k$ meaning that the path $S$ is shorter than the original path $M$
-
-*In this article I won't go about how S can be analytically constructed. Instead I'll focus on an approximation method.*
-
 ### Optimizing out unwanted side-effects
 
 In order to reduce the number of instructions after sorting, I use a recursive algorithm that will test random instructions.
@@ -493,7 +431,7 @@ Here's how the algorithm works:
 ```C, Instruction optimization algorithm
 def optimize(states, index, present_state, current_score, best_score, best_future):
 	/* Fetch next instruction to 'simulate' */
-	for ins in all instructions:
+	for ins in all_instructions:
 		/* Simulate the effect of the instruction */
 		simulated = simulate(present_state, ins)
 
@@ -531,6 +469,14 @@ Therefore the algorithm keeps `rra` and skips directly to the final `sa`. Thus r
 The key is to also try to do nothing: `nop`. And check if by doing nothing we can advance to a future state of the sorting program.
 This also has the benefit of removing 'useless' instructions. For instance, rotating a stack with < 2 elements.
 
+Of course this algorithm is guaranteed to find the best optimizations, however we can't let it recurse indefinitely. Thus, i've set the maximum recursion depth to 2, which seems to yield good enough results while not impeding performances too much.
+
+#+LAYOUT_BEGIN Split
+
+
+#+LAYOUT_NEXT
+#+LAYOUT_END
+
 ## Optimizing quicksort
 
 Quicksort is already as fast as a sorting algorithm can be: `O(n log n)`. At least, it should be according to theory.
@@ -564,7 +510,7 @@ Here's the result of the cost function for testing out pivots to sort 500 intege
 
 From this we can clearly see that there seems to be a sweet spot around (0.2, 0.6). But using this method to determine the best pivots is unreasonably slow!
 Also these are the result for the initial unsorted array. As the data gets partially sorted, optimal pivots may vary a lot.
-We could generate a table and make lookup to it in order to get good pivots, but building such a table requires an entire article of it's own.
+We could generate a table and make lookup to it in order to get good pivots, but building such a table is a whole different project.
 Instead I'm going to introduce a heuristic method that finds 'good enough' pivots.
 
 ### Simulated Annealing
@@ -583,11 +529,10 @@ You get the idea, this method is guaranted to find good pivots -- at the cost of
 
 ### Fine-tuning
 
-In order to pass this assignment, the program must sort 500 elements in less than a minute and use less than 4500 instructions to do so.
+In order to pass this assignment, the program must sort 500 elements in less than a minute and use less than 4500 instructions doing so.
 I've manually tested values until I could find set and forget values, that make sure the program always finishes fast enough with good-enough results.
 
  * ``C, temperature_initial``: ``C, 1.0f``
-
  * ``C, temperature_min``: ``C, .1f``
  * ``C, temperature_cooling``: ``C, .95f``
  Fast cooldown rate
@@ -599,7 +544,63 @@ I've manually tested values until I could find set and forget values, that make 
  Max annealing recursion depth. Any other value larger than 2 will make it really slow to sort more than 100 elements.
  * ``C, max_fast_anneal``: ``C, 0``
 
-# References
+### Edge-cases
+
+Quicksort is already a really good algorithm, being the default sorting algorithm in C, C++, Rust. However there's an issue with quicksort.
+When the input is almost sorted (e.g everything sorted but one element) quicksort turns out to be very slow -- sometimes slower than bubble sort.
+
+This is the reason why most sorting algorithm relying on quicksort, use an alternative algorithm (e.g heapsort) when detecting a worst-case.
+I recommend reading [Pattern-Defeating Quicksort](https://github.com/orlp/pdqsort) which is quicksort variant that tries to efficiently detect these edge-cases and resort to other sorting algorithm.
+
+By lack of time, I decided not to implement such a strategy for push_swap.
+
+# Utility
+
+I discuss the utility functions I've used for `push_swap`.
+
+## Moving values
+
+Push_swap required me to move values from one place to another. I found that writing a ``C,blk_move`` function that does it is very handy.
+
+Here's the table that tells us what moves are required to move values (row: *move from*, columns: *move to*):
+|:talign=center: |  ``TOP A``  |  ``BOT A``  | ``TOP B``  |  ``BOT B``  |
+| ``TOP A``      |             |**    ra   **|**  pb    **|** pb   rb **|
+| ``BOT A``      |**  rra    **|**         **|**rra  pb **|**rra pb rb**|
+| ``TOP B``      |** pa      **|** pa   ra **|**        **|**   rb    **|
+| ``BOT B``      |** rrb  pa **|**rrb pa ra**|** rrb    **|**         **|
+
+Using this table, I implement the following move function that moves from any location to any other location:
+
+```C, Move function
+void	blk_move(t_state *s, enum e_blk_dest from, enum e_blk_dest to)
+{
+	const uint8_t	id = (from << 2) | to;
+
+	/* Check if move is legal */
+	if (((from & __BLK_SEL) == __BLK_A && !s->sa.size)
+		|| ((from & __BLK_SEL) == __BLK_B && !s->sb.size))
+		return ;
+	/* Move table */
+	(void)((!(id % 5))
+		|| (id == 1 && (op(s, STACK_OP_RA), 1))
+		|| (id == 2 && (op(s, STACK_OP_PB), 1))
+		|| (id == 3 && (op(s, STACK_OP_PB), op(s, STACK_OP_RB), 1))
+		|| (id == 4 && (op(s, STACK_OP_RRA), 1))
+		|| (id == 6 && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB), 1))
+		|| (id == 7 && (op(s, STACK_OP_RRA), op(s, STACK_OP_PB),
+			op(s, STACK_OP_RB), 1))
+		|| (id == 8 && (op(s, STACK_OP_PA), 1))
+		|| (id == 9 && (op(s, STACK_OP_PA), op(s, STACK_OP_RA), 1))
+		|| (id == 11 && (op(s, STACK_OP_RB), 1))
+		|| (id == 12 && (op(s, STACK_OP_RRB), op(s, STACK_OP_PA), 1))
+		|| (id == 13 && (op(s, STACK_OP_RRB), op(s, STACK_OP_PA),
+			op(s, STACK_OP_RA), 1))
+		|| (id == 14 && (op(s, STACK_OP_RRB), 1)));
+}
+```
+
+#* References
 
  * [Push swap quick sort implementation](https://automatic-saltopus-34b.notion.site/push_swap-c15e62229b9541d78fadec4d6aae8b50)
  * [Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing)
+ * [Pattern-Defeating Quicksort](https://github.com/orlp/pdqsort)

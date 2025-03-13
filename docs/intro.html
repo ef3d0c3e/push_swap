@@ -1,0 +1,704 @@
+<!DOCTYPE HTML><html><head><meta charset="UTF-8"><title>Push swap in 3500 instructions</title><link rel="stylesheet" href="./style.css"></head><body><div class="layout"><div class="content"><div class="centered"><h1 id="Push_Swap_in_3500_instructions"><a class="section-link" href="#Push_Swap_in_3500_instructions">🔗</a> Push Swap in 3500 instructions</h1></div><div class="toc"><span>Index</span><ol><li value="1"><a href="#Introduction">Introduction</a></li><ol><li value="1"><a href="#The_stacks">The stacks</a></li><li value="2"><a href="#Instruction_set">Instruction set</a></li><li value="3"><a href="#Simulation">Simulation</a></li></ol><li value="2"><a href="#Algorithm">Algorithm</a></li><ol><li value="1"><a href="#Small_sorting">Small sorting</a></li></ol><li value="3"><a href="#Optimizations">Optimizations</a></li><ol><li value="1"><a href="#Instructions">Instructions</a></li><ol><li value="1"><a href="#Side-effects">Side-effects</a></li><li value="2"><a href="#Optimizing_out_unwanted_side-effects">Optimizing out unwanted side-effects</a></li></ol><li value="2"><a href="#Optimizing_quicksort">Optimizing quicksort</a></li><ol><li value="1"><a href="#Better_pivots">Better pivots</a></li><li value="2"><a href="#Simulated_Annealing">Simulated Annealing</a></li><li value="3"><a href="#Fine-tuning">Fine-tuning</a></li><li value="4"><a href="#Edge-cases">Edge-cases</a></li></ol></ol><li value="4"><a href="#Utility">Utility</a></li><ol><li value="1"><a href="#Moving_values">Moving values</a></li></ol><li style="list-style-type:none"><a href="#References">References</a></li></div><h1 id="Introduction">1. Introduction</h1><p><i>push_swap</i> is a sorting problem, using a state machine. The state machine requires two 'stacks' to operate and accepts a limited sets of instructions. The goal of the program is to sort the initial stacks using the fewest number of instructions. This article is about the optimizations beyond the sorting algorithm.</p><h2 id="The_stacks">1.1. The stacks</h2><p>The original problem mentions the use of two stacks. While they can be represented as stacks, the instructions lets us manipulate them as if they were 'circular'. In fact the rotate and reverse rotate operation lets us access the bottom of the stack easily. You find that to push a value to B's bottom translates to <em>pb rb</em>. Which in traditional stack problems would require <em>O(n)</em> operations.</p><p>If you decide to implement the stacks as contiguous arrays, you'll find that some operations become very expensive. For instance, every rotate operation will require you to <a class="inline-code"><code><span style="color:#8fa1b3;">memmove</span><span style="color:#c0c5ce;">(&amp;stack[</span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">], &amp;stack[</span><span style="color:#d08770;">0</span><span style="color:#c0c5ce;">], size-</span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">)</span></code></a> your stack, in order to move all elements 1 up to make space for the bottom element.</p><p>With this information in mind, there are quite a number of data structures that would work for this problem. One could use a circular-doubly-linked-list, they would most certainly work, but be extra painful to deal with later. I found that a double-ended-queue (deque for short) would be more suited for this task. Since adding/removing at their fronts/backs can be implemented very efficiently. There's a slight twist to this problem, as we already know the maximum size required for our 'stacks'.</p><p>Therefore, I've implemented my deque using a constant buffer of size <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="2.938440em" height="0.855046em" viewBox="0 -6.807795 26.248722 7.638022" style="vertical-align:-0.092941em"><defs><path id="NIWI_g1-78" d="M7.531756-5.758406C7.631382-6.156912 7.81071-6.465753 8.607721-6.495641C8.657534-6.495641 8.777086-6.505604 8.777086-6.694894C8.777086-6.704857 8.777086-6.804483 8.647572-6.804483C8.318804-6.804483 7.970112-6.774595 7.641345-6.774595C7.302615-6.774595 6.953923-6.804483 6.625156-6.804483C6.56538-6.804483 6.445828-6.804483 6.445828-6.60523C6.445828-6.495641 6.545455-6.495641 6.625156-6.495641C7.193026-6.485679 7.302615-6.276463 7.302615-6.057285C7.302615-6.027397 7.28269-5.877958 7.272727-5.84807L6.156912-1.414695L3.955168-6.615193C3.875467-6.794521 3.865504-6.804483 3.636364-6.804483H2.30137C2.102117-6.804483 2.012453-6.804483 2.012453-6.60523C2.012453-6.495641 2.102117-6.495641 2.291407-6.495641C2.34122-6.495641 2.968867-6.495641 2.968867-6.405978L1.633873-1.05604C1.534247-.657534 1.364882-.33873 .557908-.308842C.498132-.308842 .388543-.298879 .388543-.109589C.388543-.039851 .438356 0 .518057 0C.836862 0 1.185554-.029888 1.514321-.029888C1.853051-.029888 2.211706 0 2.540473 0C2.590286 0 2.719801 0 2.719801-.199253C2.719801-.298879 2.630137-.308842 2.520548-.308842C1.942715-.328767 1.863014-.547945 1.863014-.747198C1.863014-.816936 1.872976-.86675 1.902864-.976339L3.217933-6.236613C3.257783-6.176837 3.257783-6.156912 3.307597-6.057285L5.788294-.18929C5.858032-.019925 5.88792 0 5.977584 0C6.087173 0 6.087173-.029888 6.136986-.209215L7.531756-5.758406Z"/><path id="NIWI_g0-2" d="M3.875467-2.769614L1.882939-4.752179C1.763387-4.871731 1.743462-4.891656 1.663761-4.891656C1.564134-4.891656 1.464508-4.801993 1.464508-4.692403C1.464508-4.622665 1.484433-4.60274 1.594022-4.493151L3.58655-2.49066L1.594022-.488169C1.484433-.37858 1.464508-.358655 1.464508-.288917C1.464508-.179328 1.564134-.089664 1.663761-.089664C1.743462-.089664 1.763387-.109589 1.882939-.229141L3.865504-2.211706L5.927771-.14944C5.947696-.139477 6.017435-.089664 6.07721-.089664C6.196762-.089664 6.276463-.179328 6.276463-.288917C6.276463-.308842 6.276463-.348692 6.246575-.398506C6.236613-.418431 4.652553-1.982565 4.154421-2.49066L5.977584-4.313823C6.027397-4.373599 6.176837-4.503113 6.22665-4.562889C6.236613-4.582814 6.276463-4.622665 6.276463-4.692403C6.276463-4.801993 6.196762-4.891656 6.07721-4.891656C5.997509-4.891656 5.957659-4.851806 5.84807-4.742217L3.875467-2.769614Z"/><path id="NIWI_g2-51" d="M2.889166-3.506849C3.706102-3.775841 4.283935-4.473225 4.283935-5.260274C4.283935-6.07721 3.407223-6.635118 2.450809-6.635118C1.444583-6.635118 .687422-6.03736 .687422-5.280199C.687422-4.951432 .9066-4.762142 1.195517-4.762142C1.504359-4.762142 1.703611-4.98132 1.703611-5.270237C1.703611-5.768369 1.235367-5.768369 1.085928-5.768369C1.39477-6.256538 2.052304-6.386052 2.410959-6.386052C2.819427-6.386052 3.367372-6.166874 3.367372-5.270237C3.367372-5.150685 3.347447-4.572852 3.088418-4.134496C2.789539-3.656289 2.450809-3.626401 2.201743-3.616438C2.122042-3.606476 1.882939-3.58655 1.8132-3.58655C1.733499-3.576588 1.663761-3.566625 1.663761-3.466999C1.663761-3.35741 1.733499-3.35741 1.902864-3.35741H2.34122C3.158157-3.35741 3.526775-2.67995 3.526775-1.703611C3.526775-.348692 2.839352-.059776 2.400996-.059776C1.972603-.059776 1.225405-.229141 .876712-.816936C1.225405-.767123 1.534247-.986301 1.534247-1.364882C1.534247-1.723537 1.265255-1.92279 .976339-1.92279C.737235-1.92279 .418431-1.783313 .418431-1.344956C.418431-.438356 1.344956 .219178 2.430884 .219178C3.646326 .219178 4.552927-.687422 4.552927-1.703611C4.552927-2.520548 3.92528-3.297634 2.889166-3.506849Z"/></defs><g id="NIWI_page1"><g fill="#d5d5d5"><use x="0" y="0" xlink:href="#NIWI_g2-51"/><use x="7.195205" y="0" xlink:href="#NIWI_g0-2"/><use x="17.157819" y="0" xlink:href="#NIWI_g1-78"/></g></g></svg>, where <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1.017690em" height="0.762105em" viewBox="0 -6.807795 9.090903 6.807795" style="vertical-align:-0.000000em"><defs><path id="eZyR_g0-78" d="M7.531756-5.758406C7.631382-6.156912 7.81071-6.465753 8.607721-6.495641C8.657534-6.495641 8.777086-6.505604 8.777086-6.694894C8.777086-6.704857 8.777086-6.804483 8.647572-6.804483C8.318804-6.804483 7.970112-6.774595 7.641345-6.774595C7.302615-6.774595 6.953923-6.804483 6.625156-6.804483C6.56538-6.804483 6.445828-6.804483 6.445828-6.60523C6.445828-6.495641 6.545455-6.495641 6.625156-6.495641C7.193026-6.485679 7.302615-6.276463 7.302615-6.057285C7.302615-6.027397 7.28269-5.877958 7.272727-5.84807L6.156912-1.414695L3.955168-6.615193C3.875467-6.794521 3.865504-6.804483 3.636364-6.804483H2.30137C2.102117-6.804483 2.012453-6.804483 2.012453-6.60523C2.012453-6.495641 2.102117-6.495641 2.291407-6.495641C2.34122-6.495641 2.968867-6.495641 2.968867-6.405978L1.633873-1.05604C1.534247-.657534 1.364882-.33873 .557908-.308842C.498132-.308842 .388543-.298879 .388543-.109589C.388543-.039851 .438356 0 .518057 0C.836862 0 1.185554-.029888 1.514321-.029888C1.853051-.029888 2.211706 0 2.540473 0C2.590286 0 2.719801 0 2.719801-.199253C2.719801-.298879 2.630137-.308842 2.520548-.308842C1.942715-.328767 1.863014-.547945 1.863014-.747198C1.863014-.816936 1.872976-.86675 1.902864-.976339L3.217933-6.236613C3.257783-6.176837 3.257783-6.156912 3.307597-6.057285L5.788294-.18929C5.858032-.019925 5.88792 0 5.977584 0C6.087173 0 6.087173-.029888 6.136986-.209215L7.531756-5.758406Z"/></defs><g id="eZyR_page1"><g fill="#d5d5d5"><use x="0" y="0" xlink:href="#eZyR_g0-78"/></g></g></svg> is the input size. The actual usable buffer is the <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="5.195318em" height="1.115278em" viewBox="0 -7.47198 46.409141 9.96264" style="vertical-align:-0.278819em"><defs><path id="OkKA_g0-2" d="M3.875467-2.769614L1.882939-4.752179C1.763387-4.871731 1.743462-4.891656 1.663761-4.891656C1.564134-4.891656 1.464508-4.801993 1.464508-4.692403C1.464508-4.622665 1.484433-4.60274 1.594022-4.493151L3.58655-2.49066L1.594022-.488169C1.484433-.37858 1.464508-.358655 1.464508-.288917C1.464508-.179328 1.564134-.089664 1.663761-.089664C1.743462-.089664 1.763387-.109589 1.882939-.229141L3.865504-2.211706L5.927771-.14944C5.947696-.139477 6.017435-.089664 6.07721-.089664C6.196762-.089664 6.276463-.179328 6.276463-.288917C6.276463-.308842 6.276463-.348692 6.246575-.398506C6.236613-.418431 4.652553-1.982565 4.154421-2.49066L5.977584-4.313823C6.027397-4.373599 6.176837-4.503113 6.22665-4.562889C6.236613-4.582814 6.276463-4.622665 6.276463-4.692403C6.276463-4.801993 6.196762-4.891656 6.07721-4.891656C5.997509-4.891656 5.957659-4.851806 5.84807-4.742217L3.875467-2.769614Z"/><path id="OkKA_g1-59" d="M2.022416-.009963C2.022416-.667497 1.77335-1.05604 1.384807-1.05604C1.05604-1.05604 .856787-.806974 .856787-.52802C.856787-.259029 1.05604 0 1.384807 0C1.504359 0 1.633873-.039851 1.733499-.129514C1.763387-.14944 1.77335-.159402 1.783313-.159402S1.803238-.14944 1.803238-.009963C1.803238 .727273 1.454545 1.325031 1.125778 1.653798C1.016189 1.763387 1.016189 1.783313 1.016189 1.8132C1.016189 1.882939 1.066002 1.92279 1.115816 1.92279C1.225405 1.92279 2.022416 1.155666 2.022416-.009963Z"/><path id="OkKA_g1-78" d="M7.531756-5.758406C7.631382-6.156912 7.81071-6.465753 8.607721-6.495641C8.657534-6.495641 8.777086-6.505604 8.777086-6.694894C8.777086-6.704857 8.777086-6.804483 8.647572-6.804483C8.318804-6.804483 7.970112-6.774595 7.641345-6.774595C7.302615-6.774595 6.953923-6.804483 6.625156-6.804483C6.56538-6.804483 6.445828-6.804483 6.445828-6.60523C6.445828-6.495641 6.545455-6.495641 6.625156-6.495641C7.193026-6.485679 7.302615-6.276463 7.302615-6.057285C7.302615-6.027397 7.28269-5.877958 7.272727-5.84807L6.156912-1.414695L3.955168-6.615193C3.875467-6.794521 3.865504-6.804483 3.636364-6.804483H2.30137C2.102117-6.804483 2.012453-6.804483 2.012453-6.60523C2.012453-6.495641 2.102117-6.495641 2.291407-6.495641C2.34122-6.495641 2.968867-6.495641 2.968867-6.405978L1.633873-1.05604C1.534247-.657534 1.364882-.33873 .557908-.308842C.498132-.308842 .388543-.298879 .388543-.109589C.388543-.039851 .438356 0 .518057 0C.836862 0 1.185554-.029888 1.514321-.029888C1.853051-.029888 2.211706 0 2.540473 0C2.590286 0 2.719801 0 2.719801-.199253C2.719801-.298879 2.630137-.308842 2.520548-.308842C1.942715-.328767 1.863014-.547945 1.863014-.747198C1.863014-.816936 1.872976-.86675 1.902864-.976339L3.217933-6.236613C3.257783-6.176837 3.257783-6.156912 3.307597-6.057285L5.788294-.18929C5.858032-.019925 5.88792 0 5.977584 0C6.087173 0 6.087173-.029888 6.136986-.209215L7.531756-5.758406Z"/><path id="OkKA_g2-50" d="M1.265255-.767123L2.321295-1.793275C3.875467-3.16812 4.473225-3.706102 4.473225-4.702366C4.473225-5.838107 3.576588-6.635118 2.361146-6.635118C1.235367-6.635118 .498132-5.718555 .498132-4.83188C.498132-4.273973 .996264-4.273973 1.026152-4.273973C1.195517-4.273973 1.544209-4.393524 1.544209-4.801993C1.544209-5.061021 1.364882-5.32005 1.016189-5.32005C.936488-5.32005 .916563-5.32005 .886675-5.310087C1.115816-5.957659 1.653798-6.326276 2.231631-6.326276C3.138232-6.326276 3.566625-5.519303 3.566625-4.702366C3.566625-3.905355 3.068493-3.118306 2.520548-2.500623L.607721-.368618C.498132-.259029 .498132-.239103 .498132 0H4.194271L4.473225-1.733499H4.224159C4.174346-1.43462 4.104608-.996264 4.004981-.846824C3.935243-.767123 3.277709-.767123 3.058531-.767123H1.265255Z"/><path id="OkKA_g2-91" d="M2.540473 2.49066V2.092154H1.574097V-7.073474H2.540473V-7.47198H1.175592V2.49066H2.540473Z"/><path id="OkKA_g2-93" d="M1.58406-7.47198H.219178V-7.073474H1.185554V2.092154H.219178V2.49066H1.58406V-7.47198Z"/></defs><g id="OkKA_page1"><g fill="#d5d5d5"><use x="0" y="0" xlink:href="#OkKA_g2-91"/><use x="2.767408" y="0" xlink:href="#OkKA_g1-78"/><use x="11.304817" y="0" xlink:href="#OkKA_g1-59"/><use x="17.393024" y="0" xlink:href="#OkKA_g2-50"/><use x="24.588229" y="0" xlink:href="#OkKA_g0-2"/><use x="34.550843" y="0" xlink:href="#OkKA_g1-78"/><use x="43.641733" y="0" xlink:href="#OkKA_g2-93"/></g></g></svg> window. This window has free space it can move inside of. A rotate moves the window 1 down, while a reverse rotate moves it 1 up. When the window has no more space to move into, it is <a class="inline-code"><code><span style="color:#c0c5ce;">memcpy</span></code></a>ed to it's original position.</p><p>As the buffer has size <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="2.938440em" height="0.855046em" viewBox="0 -6.807795 26.248722 7.638022" style="vertical-align:-0.092941em"><defs><path id="NIWI_g1-78" d="M7.531756-5.758406C7.631382-6.156912 7.81071-6.465753 8.607721-6.495641C8.657534-6.495641 8.777086-6.505604 8.777086-6.694894C8.777086-6.704857 8.777086-6.804483 8.647572-6.804483C8.318804-6.804483 7.970112-6.774595 7.641345-6.774595C7.302615-6.774595 6.953923-6.804483 6.625156-6.804483C6.56538-6.804483 6.445828-6.804483 6.445828-6.60523C6.445828-6.495641 6.545455-6.495641 6.625156-6.495641C7.193026-6.485679 7.302615-6.276463 7.302615-6.057285C7.302615-6.027397 7.28269-5.877958 7.272727-5.84807L6.156912-1.414695L3.955168-6.615193C3.875467-6.794521 3.865504-6.804483 3.636364-6.804483H2.30137C2.102117-6.804483 2.012453-6.804483 2.012453-6.60523C2.012453-6.495641 2.102117-6.495641 2.291407-6.495641C2.34122-6.495641 2.968867-6.495641 2.968867-6.405978L1.633873-1.05604C1.534247-.657534 1.364882-.33873 .557908-.308842C.498132-.308842 .388543-.298879 .388543-.109589C.388543-.039851 .438356 0 .518057 0C.836862 0 1.185554-.029888 1.514321-.029888C1.853051-.029888 2.211706 0 2.540473 0C2.590286 0 2.719801 0 2.719801-.199253C2.719801-.298879 2.630137-.308842 2.520548-.308842C1.942715-.328767 1.863014-.547945 1.863014-.747198C1.863014-.816936 1.872976-.86675 1.902864-.976339L3.217933-6.236613C3.257783-6.176837 3.257783-6.156912 3.307597-6.057285L5.788294-.18929C5.858032-.019925 5.88792 0 5.977584 0C6.087173 0 6.087173-.029888 6.136986-.209215L7.531756-5.758406Z"/><path id="NIWI_g0-2" d="M3.875467-2.769614L1.882939-4.752179C1.763387-4.871731 1.743462-4.891656 1.663761-4.891656C1.564134-4.891656 1.464508-4.801993 1.464508-4.692403C1.464508-4.622665 1.484433-4.60274 1.594022-4.493151L3.58655-2.49066L1.594022-.488169C1.484433-.37858 1.464508-.358655 1.464508-.288917C1.464508-.179328 1.564134-.089664 1.663761-.089664C1.743462-.089664 1.763387-.109589 1.882939-.229141L3.865504-2.211706L5.927771-.14944C5.947696-.139477 6.017435-.089664 6.07721-.089664C6.196762-.089664 6.276463-.179328 6.276463-.288917C6.276463-.308842 6.276463-.348692 6.246575-.398506C6.236613-.418431 4.652553-1.982565 4.154421-2.49066L5.977584-4.313823C6.027397-4.373599 6.176837-4.503113 6.22665-4.562889C6.236613-4.582814 6.276463-4.622665 6.276463-4.692403C6.276463-4.801993 6.196762-4.891656 6.07721-4.891656C5.997509-4.891656 5.957659-4.851806 5.84807-4.742217L3.875467-2.769614Z"/><path id="NIWI_g2-51" d="M2.889166-3.506849C3.706102-3.775841 4.283935-4.473225 4.283935-5.260274C4.283935-6.07721 3.407223-6.635118 2.450809-6.635118C1.444583-6.635118 .687422-6.03736 .687422-5.280199C.687422-4.951432 .9066-4.762142 1.195517-4.762142C1.504359-4.762142 1.703611-4.98132 1.703611-5.270237C1.703611-5.768369 1.235367-5.768369 1.085928-5.768369C1.39477-6.256538 2.052304-6.386052 2.410959-6.386052C2.819427-6.386052 3.367372-6.166874 3.367372-5.270237C3.367372-5.150685 3.347447-4.572852 3.088418-4.134496C2.789539-3.656289 2.450809-3.626401 2.201743-3.616438C2.122042-3.606476 1.882939-3.58655 1.8132-3.58655C1.733499-3.576588 1.663761-3.566625 1.663761-3.466999C1.663761-3.35741 1.733499-3.35741 1.902864-3.35741H2.34122C3.158157-3.35741 3.526775-2.67995 3.526775-1.703611C3.526775-.348692 2.839352-.059776 2.400996-.059776C1.972603-.059776 1.225405-.229141 .876712-.816936C1.225405-.767123 1.534247-.986301 1.534247-1.364882C1.534247-1.723537 1.265255-1.92279 .976339-1.92279C.737235-1.92279 .418431-1.783313 .418431-1.344956C.418431-.438356 1.344956 .219178 2.430884 .219178C3.646326 .219178 4.552927-.687422 4.552927-1.703611C4.552927-2.520548 3.92528-3.297634 2.889166-3.506849Z"/></defs><g id="NIWI_page1"><g fill="#d5d5d5"><use x="0" y="0" xlink:href="#NIWI_g2-51"/><use x="7.195205" y="0" xlink:href="#NIWI_g0-2"/><use x="17.157819" y="0" xlink:href="#NIWI_g1-78"/></g></g></svg>, the expensive <a class="inline-code"><code><span style="color:#c0c5ce;">memcpy</span></code></a> happens once every <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1.017690em" height="0.762105em" viewBox="0 -6.807795 9.090903 6.807795" style="vertical-align:-0.000000em"><defs><path id="eZyR_g0-78" d="M7.531756-5.758406C7.631382-6.156912 7.81071-6.465753 8.607721-6.495641C8.657534-6.495641 8.777086-6.505604 8.777086-6.694894C8.777086-6.704857 8.777086-6.804483 8.647572-6.804483C8.318804-6.804483 7.970112-6.774595 7.641345-6.774595C7.302615-6.774595 6.953923-6.804483 6.625156-6.804483C6.56538-6.804483 6.445828-6.804483 6.445828-6.60523C6.445828-6.495641 6.545455-6.495641 6.625156-6.495641C7.193026-6.485679 7.302615-6.276463 7.302615-6.057285C7.302615-6.027397 7.28269-5.877958 7.272727-5.84807L6.156912-1.414695L3.955168-6.615193C3.875467-6.794521 3.865504-6.804483 3.636364-6.804483H2.30137C2.102117-6.804483 2.012453-6.804483 2.012453-6.60523C2.012453-6.495641 2.102117-6.495641 2.291407-6.495641C2.34122-6.495641 2.968867-6.495641 2.968867-6.405978L1.633873-1.05604C1.534247-.657534 1.364882-.33873 .557908-.308842C.498132-.308842 .388543-.298879 .388543-.109589C.388543-.039851 .438356 0 .518057 0C.836862 0 1.185554-.029888 1.514321-.029888C1.853051-.029888 2.211706 0 2.540473 0C2.590286 0 2.719801 0 2.719801-.199253C2.719801-.298879 2.630137-.308842 2.520548-.308842C1.942715-.328767 1.863014-.547945 1.863014-.747198C1.863014-.816936 1.872976-.86675 1.902864-.976339L3.217933-6.236613C3.257783-6.176837 3.257783-6.156912 3.307597-6.057285L5.788294-.18929C5.858032-.019925 5.88792 0 5.977584 0C6.087173 0 6.087173-.029888 6.136986-.209215L7.531756-5.758406Z"/></defs><g id="eZyR_page1"><g fill="#d5d5d5"><use x="0" y="0" xlink:href="#eZyR_g0-78"/></g></g></svg> rotates or reverse-rotates. Which amortizes it's cost, rendering the add/remove to front/back operations <em>O(1)</em>.</p><h2 id="Instruction_set">1.2. Instruction set</h2><p>Push_swap accepts a total of 11 differnt instructions. Of those 3 are aliases that perform 2 instructions, leaving us with a total of 8 different instructions to work with.</p><p>Here are the instructions for our state machine:</p><div class="split-container"><div class="split"><div class="centered"><p><b>pa</b></p></div><p>Takes the top element of A and push it to B:</p><svg width="100%"
+ viewBox="0.00 0.00 296.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="22" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<polygon fill="none" stroke="black" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="none" stroke="black" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+<polygon fill="none" stroke="black" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="184" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<polygon fill="none" stroke="black" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<text text-anchor="start" x="184" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="none" stroke="black" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<text text-anchor="start" x="184" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<polygon fill="none" stroke="black" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-54C134.03,-54 142.97,-54 151.53,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-57.5 161.71,-54 151.7,-50.5 151.71,-57.5"/>
+<text text-anchor="middle" x="144" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">pa</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="255.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-54 247,-79 275,-79 275,-54 247,-54"/>
+<polygon fill="none" stroke="black" points="247,-54 247,-79 275,-79 275,-54 247,-54"/>
+<text text-anchor="start" x="256" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="247,-29 247,-54 275,-54 275,-29 247,-29"/>
+<polygon fill="none" stroke="black" points="247,-29 247,-54 275,-54 275,-29 247,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-4 247,-29 275,-29 275,-4 247,-4"/>
+<polygon fill="none" stroke="black" points="247,-4 247,-29 275,-29 275,-4 247,-4"/>
+</g>
+</g>
+</svg>
+</div><div class="split"><div class="centered"><p><b>pb</b></p><p>Takes the top element of B and push it to A:</p></div><svg width="100%"
+ viewBox="0.00 0.00 297.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="22" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<polygon fill="none" stroke="black" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="none" stroke="black" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+<polygon fill="none" stroke="black" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="185" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="176,-54 176,-79 204,-79 204,-54 176,-54"/>
+<polygon fill="none" stroke="black" points="176,-54 176,-79 204,-79 204,-54 176,-54"/>
+<text text-anchor="start" x="185" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="176,-29 176,-54 204,-54 204,-29 176,-29"/>
+<polygon fill="none" stroke="black" points="176,-29 176,-54 204,-54 204,-29 176,-29"/>
+<text text-anchor="start" x="185" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="176,-4 176,-29 204,-29 204,-4 176,-4"/>
+<polygon fill="none" stroke="black" points="176,-4 176,-29 204,-29 204,-4 176,-4"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126.3,-54C134.58,-54 143.82,-54 152.64,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="152.72,-57.5 162.72,-54 152.72,-50.5 152.72,-57.5"/>
+<text text-anchor="middle" x="144.5" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">pb</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="256.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="248,-54 248,-79 276,-79 276,-54 248,-54"/>
+<polygon fill="none" stroke="black" points="248,-54 248,-79 276,-79 276,-54 248,-54"/>
+<text text-anchor="start" x="257" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="248,-29 248,-54 276,-54 276,-29 248,-29"/>
+<polygon fill="none" stroke="black" points="248,-29 248,-54 276,-54 276,-29 248,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="248,-4 248,-29 276,-29 276,-4 248,-4"/>
+<polygon fill="none" stroke="black" points="248,-4 248,-29 276,-29 276,-4 248,-4"/>
+</g>
+</g>
+</svg>
+</div></div><div class="split-container"><div class="split"><div class="centered"><p><b>sa</b></p><p>Swap A's top two elements:</p></div><svg width="100%"
+ viewBox="0.00 0.00 296.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="24.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="94" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<text text-anchor="start" x="94" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="184" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<polygon fill="none" stroke="black" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<text text-anchor="start" x="184" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="none" stroke="black" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<text text-anchor="start" x="184" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<polygon fill="none" stroke="black" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<text text-anchor="start" x="184" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-54C134.03,-54 142.97,-54 151.53,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-57.5 161.71,-54 151.7,-50.5 151.71,-57.5"/>
+<text text-anchor="middle" x="144" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">sa</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="258.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+</g>
+</svg>
+</div><div class="split"><div class="centered"><p><b>sb</b></p><p>Swap B's top two elements:</p></div><svg width="100%"
+ viewBox="0.00 0.00 296.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="24.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="183.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<polygon fill="none" stroke="black" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<text text-anchor="start" x="184" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="none" stroke="black" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<text text-anchor="start" x="184" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<polygon fill="none" stroke="black" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-54C134.03,-54 142.97,-54 151.53,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-57.5 161.71,-54 151.7,-50.5 151.71,-57.5"/>
+<text text-anchor="middle" x="144" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">sb</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="258.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+</g>
+</svg>
+</div></div><div class="split-container"><div class="split"><div class="centered"><p><b>ss</b></p><p>Performs <b>sa</b> and <b>sb</b>:</p></div><svg width="100%"
+ viewBox="0.00 0.00 296.00 141.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 137)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="22" y="-112.3" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-78.5 13,-103.5 41,-103.5 41,-78.5 13,-78.5"/>
+<polygon fill="none" stroke="black" points="13,-78.5 13,-103.5 41,-103.5 41,-78.5 13,-78.5"/>
+<text text-anchor="start" x="22" y="-87.3" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-53.5 13,-78.5 41,-78.5 41,-53.5 13,-53.5"/>
+<polygon fill="none" stroke="black" points="13,-53.5 13,-78.5 41,-78.5 41,-53.5 13,-53.5"/>
+<text text-anchor="start" x="22" y="-62.3" font-family="Times,serif" font-size="14.00" fill="white">4</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-28.5 13,-53.5 41,-53.5 41,-28.5 13,-28.5"/>
+<polygon fill="none" stroke="black" points="13,-28.5 13,-53.5 41,-53.5 41,-28.5 13,-28.5"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-3.5 13,-28.5 41,-28.5 41,-3.5 13,-3.5"/>
+<polygon fill="none" stroke="black" points="13,-3.5 13,-28.5 41,-28.5 41,-3.5 13,-3.5"/>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-112.3" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-78.5 85,-103.5 113,-103.5 113,-78.5 85,-78.5"/>
+<polygon fill="none" stroke="black" points="85,-78.5 85,-103.5 113,-103.5 113,-78.5 85,-78.5"/>
+<text text-anchor="start" x="94" y="-87.3" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-53.5 85,-78.5 113,-78.5 113,-53.5 85,-53.5"/>
+<polygon fill="none" stroke="black" points="85,-53.5 85,-78.5 113,-78.5 113,-53.5 85,-53.5"/>
+<text text-anchor="start" x="94" y="-62.3" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-28.5 85,-53.5 113,-53.5 113,-28.5 85,-28.5"/>
+<polygon fill="none" stroke="black" points="85,-28.5 85,-53.5 113,-53.5 113,-28.5 85,-28.5"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-3.5 85,-28.5 113,-28.5 113,-3.5 85,-3.5"/>
+<polygon fill="none" stroke="black" points="85,-3.5 85,-28.5 113,-28.5 113,-3.5 85,-3.5"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="184" y="-112.3" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-78.5 175,-103.5 203,-103.5 203,-78.5 175,-78.5"/>
+<polygon fill="none" stroke="black" points="175,-78.5 175,-103.5 203,-103.5 203,-78.5 175,-78.5"/>
+<text text-anchor="start" x="184" y="-87.3" font-family="Times,serif" font-size="14.00" fill="white">4</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-53.5 175,-78.5 203,-78.5 203,-53.5 175,-53.5"/>
+<polygon fill="none" stroke="black" points="175,-53.5 175,-78.5 203,-78.5 203,-53.5 175,-53.5"/>
+<text text-anchor="start" x="184" y="-62.3" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-28.5 175,-53.5 203,-53.5 203,-28.5 175,-28.5"/>
+<polygon fill="none" stroke="black" points="175,-28.5 175,-53.5 203,-53.5 203,-28.5 175,-28.5"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-3.5 175,-28.5 203,-28.5 203,-3.5 175,-3.5"/>
+<polygon fill="none" stroke="black" points="175,-3.5 175,-28.5 203,-28.5 203,-3.5 175,-3.5"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-66.5C134.03,-66.5 142.97,-66.5 151.53,-66.5"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-70 161.71,-66.5 151.7,-63 151.71,-70"/>
+<text text-anchor="middle" x="144" y="-73.3" font-family="Times,serif" font-size="14.00" fill="white">ss</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="255.5" y="-112.3" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-78.5 247,-103.5 275,-103.5 275,-78.5 247,-78.5"/>
+<polygon fill="none" stroke="black" points="247,-78.5 247,-103.5 275,-103.5 275,-78.5 247,-78.5"/>
+<text text-anchor="start" x="256" y="-87.3" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="247,-53.5 247,-78.5 275,-78.5 275,-53.5 247,-53.5"/>
+<polygon fill="none" stroke="black" points="247,-53.5 247,-78.5 275,-78.5 275,-53.5 247,-53.5"/>
+<text text-anchor="start" x="256" y="-62.3" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-28.5 247,-53.5 275,-53.5 275,-28.5 247,-28.5"/>
+<polygon fill="none" stroke="black" points="247,-28.5 247,-53.5 275,-53.5 275,-28.5 247,-28.5"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="247,-3.5 247,-28.5 275,-28.5 275,-3.5 247,-3.5"/>
+<polygon fill="none" stroke="black" points="247,-3.5 247,-28.5 275,-28.5 275,-3.5 247,-3.5"/>
+</g>
+</g>
+</svg>
+</div><div class="split"><div class="centered"><p><b>ra</b></p><p>Rotates A topwise:</p></div><svg width="100%"
+ viewBox="0.00 0.00 296.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="24.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="94" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<text text-anchor="start" x="94" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="184" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<polygon fill="none" stroke="black" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<text text-anchor="start" x="184" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="none" stroke="black" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<text text-anchor="start" x="184" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<polygon fill="none" stroke="black" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<text text-anchor="start" x="184" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-54C134.03,-54 142.97,-54 151.53,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-57.5 161.71,-54 151.7,-50.5 151.71,-57.5"/>
+<text text-anchor="middle" x="144" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">ra</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="258.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+</g>
+</svg>
+</div></div><div class="split-container"><div class="split"><div class="centered"><p><b>rb</b></p><p>Rotates B topwise:</p></div><svg width="100%"
+ viewBox="0.00 0.00 296.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="24.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="183.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<polygon fill="none" stroke="black" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<text text-anchor="start" x="184" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="none" stroke="black" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<text text-anchor="start" x="184" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<polygon fill="none" stroke="black" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-54C134.03,-54 142.97,-54 151.53,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-57.5 161.71,-54 151.7,-50.5 151.71,-57.5"/>
+<text text-anchor="middle" x="144" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">rb</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="258.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="256" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+</g>
+</svg>
+</div><div class="split"><div class="centered"><p><b>rr</b></p><p>Performs <b>ra</b> and <b>rb</b>:</p></div><svg width="100%"
+ viewBox="0.00 0.00 296.00 166.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 162)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="22" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-104 13,-129 41,-129 41,-104 13,-104"/>
+<polygon fill="none" stroke="black" points="13,-104 13,-129 41,-129 41,-104 13,-104"/>
+<text text-anchor="start" x="22" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-79 13,-104 41,-104 41,-79 13,-79"/>
+<polygon fill="none" stroke="black" points="13,-79 13,-104 41,-104 41,-79 13,-79"/>
+<text text-anchor="start" x="22" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">4</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<polygon fill="none" stroke="black" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">5</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="none" stroke="black" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+<polygon fill="none" stroke="black" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-104 85,-129 113,-129 113,-104 85,-104"/>
+<polygon fill="none" stroke="black" points="85,-104 85,-129 113,-129 113,-104 85,-104"/>
+<text text-anchor="start" x="94" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-79 85,-104 113,-104 113,-79 85,-79"/>
+<polygon fill="none" stroke="black" points="85,-79 85,-104 113,-104 113,-79 85,-79"/>
+<text text-anchor="start" x="94" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="184" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-104 175,-129 203,-129 203,-104 175,-104"/>
+<polygon fill="none" stroke="black" points="175,-104 175,-129 203,-129 203,-104 175,-104"/>
+<text text-anchor="start" x="184" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">4</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-79 175,-104 203,-104 203,-79 175,-79"/>
+<polygon fill="none" stroke="black" points="175,-79 175,-104 203,-104 203,-79 175,-79"/>
+<text text-anchor="start" x="184" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">5</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<polygon fill="none" stroke="black" points="175,-54 175,-79 203,-79 203,-54 175,-54"/>
+<text text-anchor="start" x="184" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="none" stroke="black" points="175,-29 175,-54 203,-54 203,-29 175,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+<polygon fill="none" stroke="black" points="175,-4 175,-29 203,-29 203,-4 175,-4"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126,-79C134.03,-79 142.97,-79 151.53,-79"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="151.71,-82.5 161.71,-79 151.7,-75.5 151.71,-82.5"/>
+<text text-anchor="middle" x="144" y="-85.8" font-family="Times,serif" font-size="14.00" fill="white">rr</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="255.5" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-104 247,-129 275,-129 275,-104 247,-104"/>
+<polygon fill="none" stroke="black" points="247,-104 247,-129 275,-129 275,-104 247,-104"/>
+<text text-anchor="start" x="256" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="247,-79 247,-104 275,-104 275,-79 247,-79"/>
+<polygon fill="none" stroke="black" points="247,-79 247,-104 275,-104 275,-79 247,-79"/>
+<text text-anchor="start" x="256" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-54 247,-79 275,-79 275,-54 247,-54"/>
+<polygon fill="none" stroke="black" points="247,-54 247,-79 275,-79 275,-54 247,-54"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="247,-29 247,-54 275,-54 275,-29 247,-29"/>
+<polygon fill="none" stroke="black" points="247,-29 247,-54 275,-54 275,-29 247,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="247,-4 247,-29 275,-29 275,-4 247,-4"/>
+<polygon fill="none" stroke="black" points="247,-4 247,-29 275,-29 275,-4 247,-4"/>
+</g>
+</g>
+</svg>
+</div></div><div class="split-container"><div class="split"><div class="centered"><p><b>rra</b></p><p>Rotates A bottomwise:</p></div><svg width="100%"
+ viewBox="0.00 0.00 300.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="24.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="94" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<text text-anchor="start" x="94" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="188" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="179,-54 179,-79 207,-79 207,-54 179,-54"/>
+<polygon fill="none" stroke="black" points="179,-54 179,-79 207,-79 207,-54 179,-54"/>
+<text text-anchor="start" x="188" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="179,-29 179,-54 207,-54 207,-29 179,-29"/>
+<polygon fill="none" stroke="black" points="179,-29 179,-54 207,-54 207,-29 179,-29"/>
+<text text-anchor="start" x="188" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="179,-4 179,-29 207,-29 207,-4 179,-4"/>
+<polygon fill="none" stroke="black" points="179,-4 179,-29 207,-29 207,-4 179,-4"/>
+<text text-anchor="start" x="188" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126.19,-54C135.44,-54 145.96,-54 155.86,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="155.87,-57.5 165.87,-54 155.87,-50.5 155.87,-57.5"/>
+<text text-anchor="middle" x="146" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">rra</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="262.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="260" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="260" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="260" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+</g>
+</svg>
+</div><div class="split"><div class="centered"><p><b>rrb</b></p><p>Rotates B bottomwise:</p></div><svg width="100%"
+ viewBox="0.00 0.00 301.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="24.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="22" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<text text-anchor="start" x="94" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<text text-anchor="start" x="94" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<text text-anchor="start" x="94" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="188.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="180,-54 180,-79 208,-79 208,-54 180,-54"/>
+<polygon fill="none" stroke="black" points="180,-54 180,-79 208,-79 208,-54 180,-54"/>
+<text text-anchor="start" x="189" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="180,-29 180,-54 208,-54 208,-29 180,-29"/>
+<polygon fill="none" stroke="black" points="180,-29 180,-54 208,-54 208,-29 180,-29"/>
+<text text-anchor="start" x="189" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="180,-4 180,-29 208,-29 208,-4 180,-4"/>
+<polygon fill="none" stroke="black" points="180,-4 180,-29 208,-29 208,-4 180,-4"/>
+<text text-anchor="start" x="189" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126.22,-54C135.66,-54 146.42,-54 156.54,-54"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="156.77,-57.5 166.77,-54 156.77,-50.5 156.77,-57.5"/>
+<text text-anchor="middle" x="146.5" y="-60.8" font-family="Times,serif" font-size="14.00" fill="white">rrb</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="263.5" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="261" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="261" y="-37.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+<text text-anchor="start" x="261" y="-12.8" font-family="Times,serif" font-size="14.00" fill="white"> </text>
+</g>
+</g>
+</svg>
+</div></div><div class="split-container"><div class="split"><div class="centered"><p><b>rrr</b></p><p>Performs <b>rra</b> and <b>rrb</b>:</p></div><svg width="100%"
+ viewBox="0.00 0.00 299.00 166.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 162)">
+<title>ComputerStacks</title>
+<!-- stack_1 -->
+<g id="node1" class="node">
+<title>stack_1</title>
+<text text-anchor="start" x="22" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-104 13,-129 41,-129 41,-104 13,-104"/>
+<polygon fill="none" stroke="black" points="13,-104 13,-129 41,-129 41,-104 13,-104"/>
+<text text-anchor="start" x="22" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-79 13,-104 41,-104 41,-79 13,-79"/>
+<polygon fill="none" stroke="black" points="13,-79 13,-104 41,-104 41,-79 13,-79"/>
+<text text-anchor="start" x="22" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">4</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<polygon fill="none" stroke="black" points="13,-54 13,-79 41,-79 41,-54 13,-54"/>
+<text text-anchor="start" x="22" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">5</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="none" stroke="black" points="13,-29 13,-54 41,-54 41,-29 13,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+<polygon fill="none" stroke="black" points="13,-4 13,-29 41,-29 41,-4 13,-4"/>
+</g>
+<!-- stack_2 -->
+<g id="node2" class="node">
+<title>stack_2</title>
+<text text-anchor="start" x="93.5" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-104 85,-129 113,-129 113,-104 85,-104"/>
+<polygon fill="none" stroke="black" points="85,-104 85,-129 113,-129 113,-104 85,-104"/>
+<text text-anchor="start" x="94" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-79 85,-104 113,-104 113,-79 85,-79"/>
+<polygon fill="none" stroke="black" points="85,-79 85,-104 113,-104 113,-79 85,-79"/>
+<text text-anchor="start" x="94" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="none" stroke="black" points="85,-54 85,-79 113,-79 113,-54 85,-54"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="none" stroke="black" points="85,-29 85,-54 113,-54 113,-29 85,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+<polygon fill="none" stroke="black" points="85,-4 85,-29 113,-29 113,-4 85,-4"/>
+</g>
+<!-- stack_3 -->
+<g id="node3" class="node">
+<title>stack_3</title>
+<text text-anchor="start" x="187" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">A</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="178,-104 178,-129 206,-129 206,-104 178,-104"/>
+<polygon fill="none" stroke="black" points="178,-104 178,-129 206,-129 206,-104 178,-104"/>
+<text text-anchor="start" x="187" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">5</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="178,-79 178,-104 206,-104 206,-79 178,-79"/>
+<polygon fill="none" stroke="black" points="178,-79 178,-104 206,-104 206,-79 178,-79"/>
+<text text-anchor="start" x="187" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">2</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="178,-54 178,-79 206,-79 206,-54 178,-54"/>
+<polygon fill="none" stroke="black" points="178,-54 178,-79 206,-79 206,-54 178,-54"/>
+<text text-anchor="start" x="187" y="-62.8" font-family="Times,serif" font-size="14.00" fill="white">4</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="178,-29 178,-54 206,-54 206,-29 178,-29"/>
+<polygon fill="none" stroke="black" points="178,-29 178,-54 206,-54 206,-29 178,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="178,-4 178,-29 206,-29 206,-4 178,-4"/>
+<polygon fill="none" stroke="black" points="178,-4 178,-29 206,-29 206,-4 178,-4"/>
+</g>
+<!-- stack_2&#45;&gt;stack_3 -->
+<g id="edge1" class="edge">
+<title>stack_2&#45;&gt;stack_3</title>
+<path fill="none" stroke="gray" stroke-width="2" d="M126.4,-79C135.2,-79 145.1,-79 154.49,-79"/>
+<polygon fill="gray" stroke="gray" stroke-width="2" points="154.8,-82.5 164.8,-79 154.8,-75.5 154.8,-82.5"/>
+<text text-anchor="middle" x="145.5" y="-85.8" font-family="Times,serif" font-size="14.00" fill="white">rrr</text>
+</g>
+<!-- stack_4 -->
+<g id="node4" class="node">
+<title>stack_4</title>
+<text text-anchor="start" x="258.5" y="-137.8" font-family="Times,serif" font-size="14.00" fill="white">B</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="250,-104 250,-129 278,-129 278,-104 250,-104"/>
+<polygon fill="none" stroke="black" points="250,-104 250,-129 278,-129 278,-104 250,-104"/>
+<text text-anchor="start" x="259" y="-112.8" font-family="Times,serif" font-size="14.00" fill="white">3</text>
+<polygon fill="#1e1e1e" stroke="transparent" points="250,-79 250,-104 278,-104 278,-79 250,-79"/>
+<polygon fill="none" stroke="black" points="250,-79 250,-104 278,-104 278,-79 250,-79"/>
+<text text-anchor="start" x="259" y="-87.8" font-family="Times,serif" font-size="14.00" fill="white">1</text>
+<polygon fill="#2d2d2d" stroke="transparent" points="250,-54 250,-79 278,-79 278,-54 250,-54"/>
+<polygon fill="none" stroke="black" points="250,-54 250,-79 278,-79 278,-54 250,-54"/>
+<polygon fill="#1e1e1e" stroke="transparent" points="250,-29 250,-54 278,-54 278,-29 250,-29"/>
+<polygon fill="none" stroke="black" points="250,-29 250,-54 278,-54 278,-29 250,-29"/>
+<polygon fill="#2d2d2d" stroke="transparent" points="250,-4 250,-29 278,-29 278,-4 250,-4"/>
+<polygon fill="none" stroke="black" points="250,-4 250,-29 278,-29 278,-4 250,-4"/>
+</g>
+</g>
+</svg>
+</div><div class="split"></div></div><h2 id="Simulation">1.3. Simulation</h2><p>In order to simulate outgoing instructions (when sorting) and incoming instructions (when running the checker), I encoded the instructions in a simple format:</p><div class="centered"><p><a class="inline-code"><code><span style="color:#c0c5ce;">|3bits operator selector|2bits stack selector|</span></code></a></p></div><p>For the stack selector:</p><ul><li><a class="inline-code"><code><span style="color:#d08770;">01</span></code></a> means stack <em>A</em></li><li><a class="inline-code"><code><span style="color:#d08770;">10</span></code></a> means stack <em>B</em></li><li><a class="inline-code"><code><span style="color:#d08770;">11</span></code></a> means both stacks</li></ul><p>For the operator selector:</p><ul><li><a class="inline-code"><code><span style="color:#d08770;">001</span></code></a> means swap</li><li><a class="inline-code"><code><span style="color:#d08770;">010</span></code></a> means push</li><li><a class="inline-code"><code><span style="color:#d08770;">011</span></code></a> means rotate</li><li><a class="inline-code"><code><span style="color:#d08770;">100</span></code></a> means reverse-rotate</li></ul><p>Therefore, operation <em>pb</em> is encoded in the following way: <a class="inline-code"><code><span style="color:#c0c5ce;">(0b101 &lt;&lt; </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">) | 0b10</span></code></a>, <a class="inline-code"><code><span style="color:#c0c5ce;">0b101</span></code></a> represents the push operator, and <a class="inline-code"><code><span style="color:#c0c5ce;">0b10</span></code></a> represents stack <em>B</em>.</p><p>The main benefit of this encoding scheme, is to make it easier to write the decoder:</p><div class="code-block"><div class="code-block-title">Instruction decoding code</div><div class="code-block-content"><table class="code-block-table" cellspacing="0"><tr><td class="code-block-gutter"><pre><span>1</span></pre></td><td class="code-block-line"><pre><span style="color:#b48ead;">void	</span><span style="color:#8fa1b3;">stack_op</span><span style="color:#c0c5ce;">(</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>2</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">struct</span><span style="color:#c0c5ce;"> s_stack *</span><span style="color:#bf616a;">sa</span><span style="color:#c0c5ce;">,</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>3</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">struct</span><span style="color:#c0c5ce;"> s_stack *</span><span style="color:#bf616a;">sb</span><span style="color:#c0c5ce;">,</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>4</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">enum</span><span style="color:#c0c5ce;"> e_stack_op </span><span style="color:#bf616a;">op</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>5</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">{</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>6</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">struct </span><span style="color:#c0c5ce;">s_stack *</span><span style="color:#b48ead;">const	</span><span style="color:#c0c5ce;">ss[2] = {sa, sb};</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>7</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">const enum</span><span style="color:#c0c5ce;"> e_stack_op	operand = op &amp; __STACK_OPERAND;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>8</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">const enum</span><span style="color:#c0c5ce;"> e_stack_op	operator = op &amp; __STACK_OPERATOR;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>9</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	size_t					i;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>10</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>11</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	i = </span><span style="color:#d08770;">0</span><span style="color:#c0c5ce;">;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>12</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">while </span><span style="color:#c0c5ce;">(i &lt; </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>13</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	{</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>14</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(!(operand &amp; (</span><span style="color:#d08770;">1 </span><span style="color:#c0c5ce;">&lt;&lt; i)) &amp;&amp; ++i)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>15</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#b48ead;">continue </span><span style="color:#c0c5ce;">;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>16</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(operator == __STACK_OP_SWAP &amp;&amp; ss[i]-&gt;size &gt;= </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>17</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#8fa1b3;">swap_impl</span><span style="color:#c0c5ce;">(ss[i]);</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>18</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(operator == __STACK_OP_ROTATE &amp;&amp; ss[i]-&gt;size &gt;= </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>19</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#8fa1b3;">rot_impl</span><span style="color:#c0c5ce;">(ss[i]);</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>20</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(operator == __STACK_OP_REV_ROTATE &amp;&amp; ss[i]-&gt;size &gt;= </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>21</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#8fa1b3;">rrot_impl</span><span style="color:#c0c5ce;">(ss[i]);</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>22</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(operator == __STACK_OP_PUSH &amp;&amp; ss[!i]-&gt;size &gt;= </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>23</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#8fa1b3;">push_impl</span><span style="color:#c0c5ce;">(ss[!i], ss[i]);</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>24</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		++i;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>25</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	}</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>26</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">}</span></pre></td></tr></table></div></div><h1 id="Algorithm">1. Algorithm</h1><p>The basis of the algorithm is a <a href="https://en.wikipedia.org/wiki/Quicksort#Multi-pivot_quicksort">3 multi-quicksort</a>. I'm not the first to use this algorithm for push_swap, you should check out <a href="https://automatic-saltopus-34b.notion.site/push_swap-c15e62229b9541d78fadec4d6aae8b50">this article</a> for details about implementation.</p><p>The algorithm takes a block (all the element on A for instance) and split it into 3 smaller blocks according to 2 pivots <em>(p1, p2)</em>:</p><ul><li>Block <em>min</em>: Values smaller than <em>p1</em></li><li>Block <em>max</em>: Values between <em>p1</em> and <em>p2</em></li><li>Block <em>mid</em>: Values greater than <em>p2</em></li></ul><p>Block <em>max</em> is moved from A's top to A's bot using <em>ra</em>. <em>mid</em> is moved over to B's top with <em>pb</em>, and <em>min</em> is moved to B's bot with <em>pb rb</em>. This operation is repeated until each individual block is small enough (<a class="inline-code"><code><span style="color:#c0c5ce;">size &lt;= </span><span style="color:#d08770;">3</span></code></a>) to be sorted in-place.</p><h2 id="Small_sorting">1.1. Small sorting</h2><p>I handle base case sorting for all blocks with <a class="inline-code"><code><span style="color:#c0c5ce;">size &lt;= </span><span style="color:#d08770;">3</span></code></a>. I have manually built tables to sort from any block to A's top.</p><p>For <a class="inline-code"><code><span style="color:#c0c5ce;">size == </span><span style="color:#d08770;">3</span></code></a>, that makes <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="2.912107em" height="0.774499em" viewBox="0 -6.918502 26.013499 6.918502" style="vertical-align:-0.000000em"><defs><path id="iJIR_g0-33" d="M1.524284-2.082192L1.912827-6.625156C1.912827-6.953923 1.643836-7.13325 1.384807-7.13325S.856787-6.953923 .856787-6.625156L1.24533-2.092154C1.255293-1.942715 1.265255-1.863014 1.384807-1.863014C1.484433-1.863014 1.514321-1.912827 1.524284-2.082192ZM1.912827-.52802C1.912827-.816936 1.673724-1.05604 1.384807-1.05604S.856787-.816936 .856787-.52802S1.09589 0 1.384807 0S1.912827-.239103 1.912827-.52802Z"/><path id="iJIR_g0-51" d="M2.889166-3.506849C3.706102-3.775841 4.283935-4.473225 4.283935-5.260274C4.283935-6.07721 3.407223-6.635118 2.450809-6.635118C1.444583-6.635118 .687422-6.03736 .687422-5.280199C.687422-4.951432 .9066-4.762142 1.195517-4.762142C1.504359-4.762142 1.703611-4.98132 1.703611-5.270237C1.703611-5.768369 1.235367-5.768369 1.085928-5.768369C1.39477-6.256538 2.052304-6.386052 2.410959-6.386052C2.819427-6.386052 3.367372-6.166874 3.367372-5.270237C3.367372-5.150685 3.347447-4.572852 3.088418-4.134496C2.789539-3.656289 2.450809-3.626401 2.201743-3.616438C2.122042-3.606476 1.882939-3.58655 1.8132-3.58655C1.733499-3.576588 1.663761-3.566625 1.663761-3.466999C1.663761-3.35741 1.733499-3.35741 1.902864-3.35741H2.34122C3.158157-3.35741 3.526775-2.67995 3.526775-1.703611C3.526775-.348692 2.839352-.059776 2.400996-.059776C1.972603-.059776 1.225405-.229141 .876712-.816936C1.225405-.767123 1.534247-.986301 1.534247-1.364882C1.534247-1.723537 1.265255-1.92279 .976339-1.92279C.737235-1.92279 .418431-1.783313 .418431-1.344956C.418431-.438356 1.344956 .219178 2.430884 .219178C3.646326 .219178 4.552927-.687422 4.552927-1.703611C4.552927-2.520548 3.92528-3.297634 2.889166-3.506849Z"/><path id="iJIR_g0-52" d="M2.929016-1.643836V-.777086C2.929016-.418431 2.909091-.308842 2.171856-.308842H1.96264V0C2.371108-.029888 2.889166-.029888 3.307597-.029888S4.254047-.029888 4.662516 0V-.308842H4.4533C3.716065-.308842 3.696139-.418431 3.696139-.777086V-1.643836H4.692403V-1.952677H3.696139V-6.485679C3.696139-6.684932 3.696139-6.744707 3.536737-6.744707C3.447073-6.744707 3.417186-6.744707 3.337484-6.625156L.278954-1.952677V-1.643836H2.929016ZM2.988792-1.952677H.557908L2.988792-5.668742V-1.952677Z"/><path id="iJIR_g0-61" d="M6.844334-3.257783C6.993773-3.257783 7.183064-3.257783 7.183064-3.457036S6.993773-3.656289 6.854296-3.656289H.886675C.747198-3.656289 .557908-3.656289 .557908-3.457036S.747198-3.257783 .896638-3.257783H6.844334ZM6.854296-1.325031C6.993773-1.325031 7.183064-1.325031 7.183064-1.524284S6.993773-1.723537 6.844334-1.723537H.896638C.747198-1.723537 .557908-1.723537 .557908-1.524284S.747198-1.325031 .886675-1.325031H6.854296Z"/></defs><g id="iJIR_page1"><g fill="#d5d5d5"><use x="0" y="0" xlink:href="#iJIR_g0-51"/><use x="4.981339" y="0" xlink:href="#iJIR_g0-33"/><use x="10.51608" y="0" xlink:href="#iJIR_g0-61"/><use x="21.03216" y="0" xlink:href="#iJIR_g0-52"/></g></g></svg> cases, for each possible destination (top A, bot B, etc..). So in total 24 cases for size 3. Then 8 for size 2, and 1 for size 1.</p><details class="spoiler"><summary>This is the code that dispatch sorting instructions, according to every possible scenario (only for A's top and B's top)</summary><div class="code-block"><div class="code-block-title">Sample sorting table for size == 3</div><div class="code-block-content"><table class="code-block-table" cellspacing="0"><tr><td class="code-block-gutter"><pre><span>1</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(blk-&gt;dest == BLK_A_TOP)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>2</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		((</span><span style="color:#b48ead;">void</span><span style="color:#c0c5ce;">)(</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>3</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		   (u &gt; v &amp;&amp; v &gt; w &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>4</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (u &gt; w &amp;&amp; w &gt; v &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>5</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (v &gt; u &amp;&amp; u &gt; w &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>6</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (v &gt; w &amp;&amp; w &gt; u &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>7</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (w &gt; u &amp;&amp; u &gt; v &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>8</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (w &gt; v &amp;&amp; v &gt; u &amp;&amp; (</span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))));</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>9</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(blk-&gt;dest == BLK_B_TOP)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>10</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		((</span><span style="color:#b48ead;">void</span><span style="color:#c0c5ce;">)(</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>11</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		   (u &gt; v &amp;&amp; v &gt; w &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>12</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (u &gt; w &amp;&amp; w &gt; v &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>13</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (v &gt; u &amp;&amp; u &gt; w &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>14</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (v &gt; w &amp;&amp; w &gt; u &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>15</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (w &gt; u &amp;&amp; u &gt; v &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>16</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (w &gt; v &amp;&amp; v &gt; u &amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_SA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>17</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	));</span></pre></td></tr></table></div></div></details><p>Another possible way to handle the 3-sort is to use the 2-sort function (which is way shorter). Then handle the special cases where the 2-sort function would not be enough. However there would be cases where this would generate more instructions, so I opted for the table method. Needless to say, I had to double-check, then triple-check that the values inside the table are correct.</p><h1 id="Optimizations">1. Optimizations</h1><p>I will discuss all optimizations I have used in this section.</p><h2 id="Instructions">1.1. Instructions</h2><p>Instructions are by far the simplest to optimize.</p><p>The following is a general optimization technique that works on almost all state-machine problems. Essentially it may happen that a substring of instructions produces the same output as another (smaller) substring of instructions. For instance:</p><ul><li><em>ra rb</em> produces the same side-effect as <em>rr</em>.</li><li><em>ra rra</em> produces the same side-effect as <em>nop</em>.</li></ul><p>By finding and replacing those substrings, we can lower the instruction count. However, it's a bit more complicated than that.</p><p>Find all instructions substring that can be reduced.</p><p>Essentially that would be implemented using a large table, a function would iterate over the instructions and check if a table's substring matches currently. The downside of this method is that it requires building a large table with all substrings that the function should replace. But once you have the table, most is already done.</p><p>However, that doesn't solve the issue entirely. Consider the following:</p><p>Your table contains these mappings: <em>ra rb → rr</em> and <em>rb ra → rr</em>. If the program contains the following substring: <em>ra ra rb rb</em>, which can be reduced to <em>rr rr</em>, it will only be reduced to <em>ra rr rb</em>, because the table has not enough information. If you go with this method, be sure to properly populate your table for the best results. In fact there are <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="4.318987em" height="1.130894em" viewBox="0 -8.607754 38.58098 10.102135" style="vertical-align:-0.167290em"><defs><path id="NGQV_g1-48" d="M4.582814-3.188045C4.582814-3.985056 4.533001-4.782067 4.184309-5.519303C3.726027-6.475716 2.909091-6.635118 2.49066-6.635118C1.892902-6.635118 1.165629-6.37609 .757161-5.449564C.438356-4.762142 .388543-3.985056 .388543-3.188045C.388543-2.440847 .428394-1.544209 .836862-.787049C1.265255 .019925 1.992528 .219178 2.480697 .219178C3.01868 .219178 3.775841 .009963 4.214197-.936488C4.533001-1.62391 4.582814-2.400996 4.582814-3.188045ZM2.480697 0C2.092154 0 1.504359-.249066 1.325031-1.205479C1.215442-1.803238 1.215442-2.719801 1.215442-3.307597C1.215442-3.945205 1.215442-4.60274 1.295143-5.140722C1.484433-6.326276 2.231631-6.41594 2.480697-6.41594C2.809465-6.41594 3.466999-6.236613 3.656289-5.250311C3.755915-4.692403 3.755915-3.935243 3.755915-3.307597C3.755915-2.560399 3.755915-1.882939 3.646326-1.24533C3.496887-.298879 2.929016 0 2.480697 0Z"/><path id="NGQV_g1-50" d="M1.265255-.767123L2.321295-1.793275C3.875467-3.16812 4.473225-3.706102 4.473225-4.702366C4.473225-5.838107 3.576588-6.635118 2.361146-6.635118C1.235367-6.635118 .498132-5.718555 .498132-4.83188C.498132-4.273973 .996264-4.273973 1.026152-4.273973C1.195517-4.273973 1.544209-4.393524 1.544209-4.801993C1.544209-5.061021 1.364882-5.32005 1.016189-5.32005C.936488-5.32005 .916563-5.32005 .886675-5.310087C1.115816-5.957659 1.653798-6.326276 2.231631-6.326276C3.138232-6.326276 3.566625-5.519303 3.566625-4.702366C3.566625-3.905355 3.068493-3.118306 2.520548-2.500623L.607721-.368618C.498132-.259029 .498132-.239103 .498132 0H4.194271L4.473225-1.733499H4.224159C4.174346-1.43462 4.104608-.996264 4.004981-.846824C3.935243-.767123 3.277709-.767123 3.058531-.767123H1.265255Z"/><path id="NGQV_g1-61" d="M6.844334-3.257783C6.993773-3.257783 7.183064-3.257783 7.183064-3.457036S6.993773-3.656289 6.854296-3.656289H.886675C.747198-3.656289 .557908-3.656289 .557908-3.457036S.747198-3.257783 .896638-3.257783H6.844334ZM6.854296-1.325031C6.993773-1.325031 7.183064-1.325031 7.183064-1.524284S6.993773-1.723537 6.844334-1.723537H.896638C.747198-1.723537 .557908-1.723537 .557908-1.524284S.747198-1.325031 .886675-1.325031H6.854296Z"/><path id="NGQV_g0-80" d="M3.01868-3.148194H4.712329C6.127024-3.148194 7.511831-4.184309 7.511831-5.300125C7.511831-6.067248 6.854296-6.804483 5.549191-6.804483H2.321295C2.132005-6.804483 2.022416-6.804483 2.022416-6.615193C2.022416-6.495641 2.11208-6.495641 2.311333-6.495641C2.440847-6.495641 2.620174-6.485679 2.739726-6.475716C2.899128-6.455791 2.958904-6.425903 2.958904-6.316314C2.958904-6.276463 2.948941-6.246575 2.919054-6.127024L1.58406-.777086C1.484433-.388543 1.464508-.308842 .67746-.308842C.508095-.308842 .398506-.308842 .398506-.119552C.398506 0 .518057 0 .547945 0C.826899 0 1.534247-.029888 1.8132-.029888C2.022416-.029888 2.241594-.019925 2.450809-.019925C2.669988-.019925 2.889166 0 3.098381 0C3.16812 0 3.297634 0 3.297634-.199253C3.297634-.308842 3.20797-.308842 3.01868-.308842C2.650062-.308842 2.371108-.308842 2.371108-.488169C2.371108-.547945 2.391034-.597758 2.400996-.657534L3.01868-3.148194ZM3.73599-6.117061C3.825654-6.465753 3.845579-6.495641 4.273973-6.495641H5.230386C6.057285-6.495641 6.585305-6.22665 6.585305-5.539228C6.585305-5.150685 6.386052-4.293898 5.997509-3.935243C5.499377-3.486924 4.901619-3.407223 4.463263-3.407223H3.058531L3.73599-6.117061Z"/><path id="NGQV_g2-51" d="M1.903861-2.329265C2.447821-2.329265 2.838356-1.952677 2.838356-1.206476C2.838356-.341719 2.336239-.083686 1.931756-.083686C1.652802-.083686 1.039103-.160399 .746202-.571856C1.073973-.585803 1.150685-.81594 1.150685-.962391C1.150685-1.185554 .983313-1.345953 .767123-1.345953C.571856-1.345953 .376588-1.227397 .376588-.941469C.376588-.285928 1.101868 .139477 1.945704 .139477C2.915068 .139477 3.584558-.509091 3.584558-1.206476C3.584558-1.750436 3.138232-2.294396 2.371108-2.454795C3.103362-2.719801 3.368369-3.242839 3.368369-3.668244C3.368369-4.219178 2.733748-4.630635 1.959651-4.630635S.592777-4.254047 .592777-3.696139C.592777-3.459029 .746202-3.326526 .955417-3.326526C1.171606-3.326526 1.311083-3.486924 1.311083-3.682192C1.311083-3.884433 1.171606-4.030884 .955417-4.044832C1.199502-4.351681 1.680697-4.428394 1.93873-4.428394C2.252553-4.428394 2.691905-4.274969 2.691905-3.668244C2.691905-3.375342 2.594271-3.054545 2.412951-2.838356C2.182814-2.57335 1.987547-2.559402 1.638854-2.538481C1.464508-2.524533 1.45056-2.524533 1.415691-2.517559C1.401743-2.517559 1.345953-2.503611 1.345953-2.426899C1.345953-2.329265 1.408717-2.329265 1.527273-2.329265H1.903861Z"/><path id="NGQV_g2-54" d="M1.046077-2.280448C1.046077-2.852304 1.094894-3.368369 1.3599-3.793773C1.597011-4.170361 1.973599-4.428394 2.419925-4.428394C2.629141-4.428394 2.908095-4.372603 3.047572-4.184309C2.873225-4.170361 2.726775-4.051806 2.726775-3.849564C2.726775-3.675218 2.84533-3.521793 3.054545-3.521793S3.38929-3.66127 3.38929-3.863512C3.38929-4.267995 3.096389-4.630635 2.405978-4.630635C1.401743-4.630635 .376588-3.710087 .376588-2.21071C.376588-.404483 1.227397 .139477 1.994521 .139477C2.84533 .139477 3.584558-.509091 3.584558-1.422665C3.584558-2.308344 2.880199-2.963885 2.064259-2.963885C1.506351-2.963885 1.199502-2.594271 1.046077-2.280448ZM1.994521-.083686C1.645828-.083686 1.373848-.285928 1.227397-.592777C1.12279-.801993 1.066999-1.150685 1.066999-1.569116C1.066999-2.245579 1.471482-2.768618 2.02939-2.768618C2.350187-2.768618 2.566376-2.643088 2.740722-2.385056C2.908095-2.12005 2.915068-1.827148 2.915068-1.422665C2.915068-1.025156 2.915068-.732254 2.726775-.460274C2.559402-.216189 2.336239-.083686 1.994521-.083686Z"/></defs><g id="NGQV_page1"><g fill="#d5d5d5"><use x="0" y="-4.113496" xlink:href="#NGQV_g2-54"/><use x="4.46937" y="0" xlink:href="#NGQV_g0-80"/><use x="10.86552" y="1.494381" xlink:href="#NGQV_g2-51"/><use x="18.102222" y="0" xlink:href="#NGQV_g1-61"/><use x="28.618302" y="0" xlink:href="#NGQV_g1-50"/><use x="33.599641" y="0" xlink:href="#NGQV_g1-48"/></g></g></svg> combinations for 3 <em>ra</em>'s and 3 <em>rb</em>'s. Those could be generated and hard coded into the table. But I'd rather have a general method that doesn't require a lot of preliminary work.</p><h3 id="Side-effects">1.1.1. Side-effects</h3><p>Each instruction will produce it's own side effects. The side effects depends on the instruction, but also on the state of the stacks. It is important to understand side-effects as they are useful for optimization.</p><p>Sometime it may be safe to reorder instructions, as their side effect can be contained: Suppose that the following program is valid:</p><div class="centered"><p><a class="inline-code"><code><span style="color:#c0c5ce;">sb ra sa</span></code></a></p></div><p>Because <em>sb</em> is the only instruction in the program that acts on B. It is safe to reorder it's execution within the program. Therefore the program can be simplified to the following:</p><div class="centered"><p><a class="inline-code"><code><span style="color:#c0c5ce;">ra ss</span></code></a></p></div><h3 id="Optimizing_out_unwanted_side-effects">1.1.2. Optimizing out unwanted side-effects</h3><p>In order to reduce the number of instructions after sorting, I use a recursive algorithm that will test random instructions. Yes, that's right! Using completely random instructions, I'm able to bring the total number of instructions down.</p><p>Here's how the algorithm works:</p><div class="code-block"><div class="code-block-title">Instruction optimization algorithm</div><div class="code-block-content"><table class="code-block-table" cellspacing="0"><tr><td class="code-block-gutter"><pre><span>1</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">def </span><span style="color:#8fa1b3;">optimize</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">states</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">index</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">present_state</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">current_score</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">best_score</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">best_future</span><span style="color:#c0c5ce;">):</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>2</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Fetch next instruction to &#39;simulate&#39; */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>3</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> ins in all_instructions:</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>4</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#65737e;">/* Simulate the effect of the instruction */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>5</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		simulated = </span><span style="color:#8fa1b3;">simulate</span><span style="color:#c0c5ce;">(present_state, ins)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>6</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>7</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#65737e;">/* Find the last state in `states` that corresponds (i.e same stacks) to `simulated` */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>8</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		future = </span><span style="color:#8fa1b3;">find_future_state</span><span style="color:#c0c5ce;">(states, index, simulated)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>9</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		current_score += index - future.</span><span style="color:#bf616a;">index</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>10</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>11</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#65737e;">/* Recursive call to simulate another instruction in the current simulation branch</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>12</span></pre></td><td class="code-block-line"><pre><span style="color:#65737e;">		 * Possible optimization: Evaluate if recursion is worth it. For instance, if current_score</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>13</span></pre></td><td class="code-block-line"><pre><span style="color:#65737e;">		 * is still 0 after the third recursion, it might be time to stop. */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>14</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#8fa1b3;">optimize</span><span style="color:#c0c5ce;">(states, index + </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">, future, current_score, best_score, best_future)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>15</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>16</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#65737e;">/* Update maximum */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>17</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		if current_score &gt; best_score:</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>18</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			best_future = future</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>19</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			best_score = current_score</span></pre></td></tr></table></div></div><p>This algorithm works because we have already sorted the input. So we can check if executing a random instruction is going to skip into a future state of the sorting process.</p><p>Consider the following sorting program generated by the quicksort algorithm:</p><ul><li><em>index = 0</em></li><li>A: <a class="inline-code"><code><span style="color:#d08770;">0 2 1</span></code></a></li><li>B: (empty)</li><li>F: <a class="inline-code"><code><span style="color:#c0c5ce;">ra ra sa</span></code></a> (this will sort A)</li></ul><p>After executing the first 2 instructions, the program ends up in this state:</p><ul><li><em>index = 2</em></li><li>A: <a class="inline-code"><code><span style="color:#d08770;">1 0 2</span></code></a></li><li>B: (empty)</li><li>F: <a class="inline-code"><code><span style="color:#c0c5ce;">sa</span></code></a></li></ul><p>However, the <em>optimize</em> algorithm would, at one point, have tried the <em>rra</em> instruction for <em>index = 0</em>. When it simulates the effect of <em>rra</em>, the algorithm would end up with the same stacks as that of <em>index = 2</em>. Therefore the algorithm keeps <em>rra</em> and skips directly to the final <em>sa</em>. Thus reducing the sorting program to F = <a class="inline-code"><code><span style="color:#c0c5ce;">rra sa</span></code></a>.</p><p>The key is to also try to do nothing: <em>nop</em>. And check if by doing nothing we can advance to a future state of the sorting program. This also has the benefit of removing 'useless' instructions. For instance, rotating a stack with &lt; 2 elements.</p><p>Of course this algorithm is guaranteed to find the best optimizations, however we can't let it recurse indefinitely. Thus, i've set the maximum recursion depth to 2, which seems to yield good enough results while not impeding performances too much.</p><div class="split-container"><div class="split"></div><div class="split"></div></div><h2 id="Optimizing_quicksort">1.1. Optimizing quicksort</h2><p>Quicksort is already as fast as a sorting algorithm can be: <em>O(n log n)</em>. At least, it should be according to theory. However we're looking to get below 4500 instructions to sort 500 elements. It should be noted that there are quite a few different way to implement quicksort.</p><h3 id="Better_pivots">1.1.1. Better pivots</h3><p>The 3 multi-quicksort algorithm I'm using requires 2 pivot to split in 3 separate blocks. I originally used quartiles (Q1, Q3) as the two pivots, as they should split in 3 blocks of similar size. But could we choose better values than quartiles?</p><p>But before we get to constructing them, we need a way to evaluate them. Since we want to minimize the total number of instructions, we can define the cost of a pivot pair as the following:</p><div class="code-block"><div class="code-block-title">Pivots cost function</div><div class="code-block-content"><table class="code-block-table" cellspacing="0"><tr><td class="code-block-gutter"><pre><span>1</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">def </span><span style="color:#8fa1b3;">pivots_cost</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">state</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">block</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">pivots</span><span style="color:#c0c5ce;">):</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>2</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Store operation count */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>3</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	current_op_count = state.</span><span style="color:#bf616a;">op_count</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>4</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>5</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Split in 3 using the provided pivots */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>6</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	split = </span><span style="color:#8fa1b3;">split</span><span style="color:#c0c5ce;">(state, block, pivots)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>7</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>8</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Regular sorting logic, derived from the 3-multi-quicksort */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>9</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#8fa1b3;">sort</span><span style="color:#c0c5ce;">(split.</span><span style="color:#bf616a;">max</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>10</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#8fa1b3;">sort</span><span style="color:#c0c5ce;">(split.</span><span style="color:#bf616a;">mid</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>11</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#8fa1b3;">sort</span><span style="color:#c0c5ce;">(split.</span><span style="color:#bf616a;">min</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>12</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>13</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Return score */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>14</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">return</span><span style="color:#c0c5ce;"> state.</span><span style="color:#bf616a;">op_count </span><span style="color:#c0c5ce;">- current_op_count</span></pre></td></tr></table></div></div><p>Here's the result of the cost function for testing out pivots to sort 500 integers:</p><div class="media"><div id="medium-1" class="medium"><a href="./heatmap.png"><img src="./heatmap.png"></a><p class="medium-refname">(1)  Pivots heatmap</p><p>Cost function values for pivots, tested with 500 random integers. Only the first pivot choice is represented. Other pivots use quartiles (Q1, Q3).</p></div></div><p>From this we can clearly see that there seems to be a sweet spot around (0.2, 0.6). But using this method to determine the best pivots is unreasonably slow! Also these are the result for the initial unsorted array. As the data gets partially sorted, optimal pivots may vary a lot. We could generate a table and make lookup to it in order to get good pivots, but building such a table is a whole different project. Instead I'm going to introduce a heuristic method that finds 'good enough' pivots.</p><h3 id="Simulated_Annealing">1.1.2. Simulated Annealing</h3><p>When trying to find minimum (or maximum) the <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> technique is quite popular for it's effectiveness. Sadly, it may not work in this case. The cost function may not be differentiable, let alone continuous. Also it easily gets stuck on local minima instead of finding the absolute minimum.</p><p>A similar numerical method to find minima exists and is more reliable at 'not getting stuck on local minima'. Introducing <a href="https://en.wikipedia.org/wiki/Simulated_annealing">simulated annealing</a>. The main advantage of this method is that no matter what the <em>cost</em> function looks like, this is guaranded to find good pivots (given the right parameters...). But this method is very expesive as it's going to call to our <em>pivots_cost</em> function, which may in turn call back to the pivot searching algorithm.</p><p>You get the idea, this method is guaranted to find good pivots -- at the cost of being very expensive. However we don't really care about the time it takes to sort, we'd rather minimize the instruction count required for sorting.</p><h3 id="Fine-tuning">1.1.3. Fine-tuning</h3><p>In order to pass this assignment, the program must sort 500 elements in less than a minute and use less than 4500 instructions doing so. I've manually tested values until I could find set and forget values, that make sure the program always finishes fast enough with good-enough results.</p><ul><li><a class="inline-code"><code><span style="color:#c0c5ce;">temperature_initial</span></code></a>: <a class="inline-code"><code><span style="color:#d08770;">1.0f</span></code></a></li><li><a class="inline-code"><code><span style="color:#c0c5ce;">temperature_min</span></code></a>: <a class="inline-code"><code><span style="color:#c0c5ce;">.</span><span style="color:#d08770;">1f</span></code></a></li><li><a class="inline-code"><code><span style="color:#c0c5ce;">temperature_cooling</span></code></a>: <a class="inline-code"><code><span style="color:#c0c5ce;">.</span><span style="color:#d08770;">95f</span></code></a> Fast cooldown rate</li><li><a class="inline-code"><code><span style="color:#c0c5ce;">factor_step</span></code></a>: <a class="inline-code"><code><span style="color:#d08770;">0.15f</span></code></a> Try values over a large neighboorhood</li><li><a class="inline-code"><code><span style="color:#c0c5ce;">max_tries</span></code></a>: <a class="inline-code"><code><span style="color:#d08770;">3</span></code></a> Very few tries per temperature cycle</li><li><a class="inline-code"><code><span style="color:#c0c5ce;">max_anneal</span></code></a>: <a class="inline-code"><code><span style="color:#d08770;">2</span></code></a> Max annealing recursion depth. Any other value larger than 2 will make it really slow to sort more than 100 elements.</li><li><a class="inline-code"><code><span style="color:#c0c5ce;">max_fast_anneal</span></code></a>: <a class="inline-code"><code><span style="color:#d08770;">0</span></code></a></li></ul><h3 id="Edge-cases">1.1.4. Edge-cases</h3><p>Quicksort is already a really good algorithm, being the default sorting algorithm in C, C++, Rust. However there's an issue with quicksort. When the input is almost sorted (e.g everything sorted but one element) quicksort turns out to be very slow -- sometimes slower than bubble sort.</p><p>This is the reason why most sorting algorithm relying on quicksort, use an alternative algorithm (e.g heapsort) when detecting a worst-case. I recommend reading <a href="https://github.com/orlp/pdqsort">Pattern-Defeating Quicksort</a> which is quicksort variant that tries to efficiently detect these edge-cases and resort to other sorting algorithm.</p><p>By lack of time, I decided not to implement such a strategy for push_swap.</p><h1 id="Utility">1. Utility</h1><p>I discuss the utility functions I've used for <em>push_swap</em>.</p><h2 id="Moving_values">1.1. Moving values</h2><p>Push_swap required me to move values from one place to another. I found that writing a <a class="inline-code"><code><span style="color:#c0c5ce;">blk_move</span></code></a> function that does it is very handy.</p><p>Here's the table that tells us what moves are required to move values (row: <i>move from</i>, columns: <i>move to</i>):</p><table style="text-align: center;"><tr><td></td><td><a class="inline-code"><code><span style="color:#c0c5ce;">TOP A</span></code></a> </td><td><a class="inline-code"><code><span style="color:#c0c5ce;">BOT A</span></code></a> </td><td><a class="inline-code"><code><span style="color:#c0c5ce;">TOP B</span></code></a> </td><td><a class="inline-code"><code><span style="color:#c0c5ce;">BOT B</span></code></a> </td></tr><tr><td><a class="inline-code"><code><span style="color:#c0c5ce;">TOP A</span></code></a> </td><td></td><td><b> ra </b></td><td><b> pb </b></td><td><b> pb rb </b></td></tr><tr><td><a class="inline-code"><code><span style="color:#c0c5ce;">BOT A</span></code></a> </td><td><b> rra </b></td><td><b> </b></td><td><b>rra pb </b></td><td><b>rra pb rb</b></td></tr><tr><td><a class="inline-code"><code><span style="color:#c0c5ce;">TOP B</span></code></a> </td><td><b> pa </b></td><td><b> pa ra </b></td><td><b> </b></td><td><b> rb </b></td></tr><tr><td><a class="inline-code"><code><span style="color:#c0c5ce;">BOT B</span></code></a> </td><td><b> rrb pa </b></td><td><b>rrb pa ra</b></td><td><b> rrb </b></td><td><b> </b></td></tr></table><p>Using this table, I implement the following move function that moves from any location to any other location:</p><div class="code-block"><div class="code-block-title">Move function</div><div class="code-block-content"><table class="code-block-table" cellspacing="0"><tr><td class="code-block-gutter"><pre><span>1</span></pre></td><td class="code-block-line"><pre><span style="color:#b48ead;">void	</span><span style="color:#8fa1b3;">blk_move</span><span style="color:#c0c5ce;">(t_state *</span><span style="color:#bf616a;">s</span><span style="color:#c0c5ce;">, </span><span style="color:#b48ead;">enum</span><span style="color:#c0c5ce;"> e_blk_dest </span><span style="color:#bf616a;">from</span><span style="color:#c0c5ce;">, </span><span style="color:#b48ead;">enum</span><span style="color:#c0c5ce;"> e_blk_dest </span><span style="color:#bf616a;">to</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>2</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">{</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>3</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">const </span><span style="color:#c0c5ce;">uint8_t	id = (from &lt;&lt; </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">) | to;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>4</span></pre></td><td class="code-block-line"><pre><br></pre></td></tr><tr><td class="code-block-gutter"><pre><span>5</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Check if move is legal */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>6</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(((from &amp; __BLK_SEL) == __BLK_A &amp;&amp; !s-&gt;sa.</span><span style="color:#bf616a;">size</span><span style="color:#c0c5ce;">)</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>7</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| ((from &amp; __BLK_SEL) == __BLK_B &amp;&amp; !s-&gt;sb.</span><span style="color:#bf616a;">size</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>8</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		</span><span style="color:#b48ead;">return </span><span style="color:#c0c5ce;">;</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>9</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	</span><span style="color:#65737e;">/* Move table */</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>10</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">	(</span><span style="color:#b48ead;">void</span><span style="color:#c0c5ce;">)((!(id % </span><span style="color:#d08770;">5</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>11</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">1 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>12</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">2 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PB), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>13</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">3 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RB), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>14</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">4 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>15</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">6 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PB), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>16</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">7 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PB),</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>17</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RB), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>18</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">8 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>19</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">9 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>20</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">11 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RB), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>21</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">12 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>22</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">13 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRB), </span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_PA),</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>23</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">			</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RA), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">))</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>24</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">		|| (id == </span><span style="color:#d08770;">14 </span><span style="color:#c0c5ce;">&amp;&amp; (</span><span style="color:#8fa1b3;">op</span><span style="color:#c0c5ce;">(s, STACK_OP_RRB), </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">)));</span></pre></td></tr><tr><td class="code-block-gutter"><pre><span>25</span></pre></td><td class="code-block-line"><pre><span style="color:#c0c5ce;">}</span></pre></td></tr></table></div></div><h1 id="References">References</h1><ul><li><a href="https://automatic-saltopus-34b.notion.site/push_swap-c15e62229b9541d78fadec4d6aae8b50">Push swap quick sort implementation</a></li><li><a href="https://en.wikipedia.org/wiki/Simulated_annealing">Simulated Annealing</a></li><li><a href="https://github.com/orlp/pdqsort">Pattern-Defeating Quicksort</a></li></ul><p></p></div></div></body></html>
