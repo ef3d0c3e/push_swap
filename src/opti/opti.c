@@ -17,7 +17,7 @@
 /* Get operation from id */
 static enum e_stack_op	op_insn(size_t i)
 {
-	static enum e_stack_op	op_insns[] = {
+	static enum e_stack_op	op_insns[12] = {
 		STACK_OP_NOP,
 		STACK_OP_SA,
 		STACK_OP_SB,
@@ -35,7 +35,7 @@ static enum e_stack_op	op_insn(size_t i)
 	return (op_insns[i]);
 }
 
-static void	backtrack(
+static inline void	backtrack(
 		t_backtrack *bt,
 		size_t depth,
 		t_state *parent,
@@ -60,7 +60,7 @@ static void	backtrack(
 	}
 	(void)((i = 1), max = 0);
 	while (i++ < 12)
-		max += ((i - 1) - max) * (results[i - 1] > results[max]);
+		max += (i - 1 - max) * (results[i - 1] > results[max]);
 	if (skip + results[max] <= bt->best_skip)
 		return ;
 	bt->best_skip = skip + results[max];
@@ -69,15 +69,17 @@ static void	backtrack(
 	ft_memcpy(bt->best_ops, bt->ops, bt->best_len * sizeof(enum e_stack_op));
 }
 
-static size_t
+static inline size_t
 	opti_loop(const t_state *s, t_state *sim, t_backtrack *bt, size_t i)
 {
 	t_state	tmp;
 	size_t	j;
+	size_t	k;
 
 	bt->best_len = 0;
 	bt->best_skip = 0;
 	bt->index = i;
+	k = i;
 	tmp = state_from_savestate(bt->saves + i);
 	backtrack(bt, 0, &tmp, 0);
 	if (bt->best_skip > 1)
@@ -94,7 +96,7 @@ static size_t
 	else
 		op(sim, s->ops[i++]);
 	state_free(&tmp);
-	return (i - bt->index);
+	return (i - k);
 }
 
 void	opti(const t_state *s, const t_optimizer_cfg cfg)

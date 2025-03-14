@@ -24,6 +24,7 @@ src/sort/sort.c  \
 src/sort/annealing.c
 
 OBJECTS := $(addprefix objs/,$(SOURCES:.c=.o))
+LIB_PRINTF := ./libs/ft_printf/libftprintf.a
 
 objs/%.o: IFLAGS += -I./libs/ft_printf/includes
 objs/%.o: %.c
@@ -44,14 +45,12 @@ checker: $(OBJECTS) ./objs/src/checker.o $(LIB_PRINTF)
 		$(OBJECTS) $(LFLAGS) -o $@ -lm
 
 # ft_printf
-LIB_PRINTF := ./libs/ft_printf/libftprintf.a
 $(LIB_PRINTF):
 	echo "Building libprintf..."
 	$(MAKE) -C $(dir $(LIB_PRINTF))
 
 .PHONY: all
-all: $(NAME)
-
+all: $(NAME) checker
 
 .PHONY: clean
 clean:

@@ -42,7 +42,8 @@ static inline int	evaluate_pivots(
 
 	clone = state_partial_clone(state);
 	++clone.annealing_depth;
-	split = blk_split(&clone, &blk, state->tmp_buffer[(int)(f1 * blk.size)],
+	split = blk_split(&clone, &blk,
+			state->tmp_buffer[min(f1 * blk.size, blk.size - 1)],
 			state->tmp_buffer[min(f2 * blk.size, blk.size - 1)]);
 	i = 0;
 	while (i++ < 3)
@@ -61,7 +62,7 @@ static void
 	int		eval_best;
 
 	i = 0;
-	eval_best = 1000000000;
+	eval_best = evaluate_pivots(s, *blk, best[0], best[1]);
 	while (i++ < s->pivots->max_tries)
 	{
 		new[0] = clamp(best[0] + get_random_delta(s) * s->pivots->factor_step,

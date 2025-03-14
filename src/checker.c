@@ -26,7 +26,7 @@ static int	ft_token(const char *s, const char *token)
 		++s;
 		++token;
 	}
-	return (*s == '\n');
+	return (*s == '\n' && !*token);
 }
 
 static enum e_stack_op	parse_op(const char *s, size_t *pos)
@@ -68,36 +68,19 @@ static char	*read_stdin(size_t *size, t_state *s)
 		}
 		tmp = malloc(sz + ret + 1024);
 		ft_memcpy(tmp, buf, sz - 1024 + ret);
+		free(buf);
 		buf = tmp;
 		sz += ret;
 	}
 }
 
-static void	ps(const char *name, const t_state *s)
-{
-	ft_dprintf(2, " [ STATE: %s ]\n", name);
-	ft_dprintf(2, "OP | ");
-
-	for (size_t i = 0; i < s->op_size; ++i)
-		ft_dprintf(2, " %s", stack_op_name(s->ops[i]));
-
-	ft_dprintf(2, "\n A | ");
-	for (size_t i = 0; i < s->sa.size; ++i)
-		ft_dprintf(2, " %d", s->sa.data[i]);
-	ft_dprintf(2, "\n B | ");
-	for (size_t i = 0; i < s->sb.size; ++i)
-		ft_dprintf(2, " %d", s->sb.data[i]);
-	ft_dprintf(2, "\n");
-}
-
-
 int	main(int ac, char **av)
 {
-	char	*in;
-	size_t	size;
-	size_t	pos;
-	t_state	state;
-	enum e_stack_op o;
+	char			*in;
+	size_t			size;
+	size_t			pos;
+	t_state			state;
+	enum e_stack_op	o;
 
 	state = parse_args(NULL, ac, av);
 	in = read_stdin(&size, &state);
@@ -108,14 +91,13 @@ int	main(int ac, char **av)
 		o = parse_op(in, &pos);
 		if (!o)
 			exit((ft_dprintf(2, "Error1\n"), free(in), state_free(&state), 1));
-		//op(&state, o);
+		op(&state, o);
 	}
 	free(in);
 	if (stack_sorted(&state.sa) && !state.sb.size)
 		ft_printf("OK\n");
 	else
 		ft_printf("KO\n");
-	ps ("", &state);
 	state_free(&state);
 	return (0);
 }
