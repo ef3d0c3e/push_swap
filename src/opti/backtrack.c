@@ -62,7 +62,7 @@ size_t
 
 	i = 1;
 	best = 0;
-	while (i < bt->cfg.max_frame_lookhead && start + i + 1 < bt->saves_size)
+	while (i < bt->cfg.max_frame_lookhead && start + i < bt->saves_size)
 	{
 		future = bt->saves + start + i;
 		if (bt_compare_states(state, future))
