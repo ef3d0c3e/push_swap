@@ -87,10 +87,9 @@ int	main(int ac, char **av)
 	pos = 0;
 	while (pos < size)
 	{
-		printf("pos=%zu size=%zu\n", pos, size);
 		o = parse_op(in, &pos);
 		if (!o)
-			exit((ft_dprintf(2, "Error1\n"), free(in), state_free(&state), 1));
+			exit((ft_dprintf(2, "Error\n"), free(in), state_free(&state), 1));
 		op(&state, o);
 	}
 	free(in);
