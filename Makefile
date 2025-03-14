@@ -1,6 +1,6 @@
 NAME   := push_swap
 CC     := gcc
-CFLAGS := -Wall -Wextra -ggdb -fsanitize=address
+CFLAGS := -Wall -Wextra -ggdb -O2
 #CFLAGS := -Wall -Wextra -Ofast -march=native -mtune=native -O3
 
 SOURCES := \

@@ -20,10 +20,10 @@ int	main(int ac, char **av)
 	const t_pivots_cfg		pivots = (t_pivots_cfg){
 		.temperature_initial = 1.0f,
 		.temperature_min = .1f,
-		.temperature_cooling = .95f,
-		.factor_step = 0.15f,
-		.max_tries = 3,
-		.max_anneal = 2,
+		.temperature_cooling = .99f,
+		.factor_step = 0.5f,
+		.max_tries = 100,
+		.max_anneal = 1,
 	};
 	const t_optimizer_cfg	opti_cfg = (t_optimizer_cfg){
 		.max_frame_lookhead = 100,

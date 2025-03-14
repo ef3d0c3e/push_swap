@@ -43,8 +43,8 @@ static inline int	evaluate_pivots(
 	clone = state_partial_clone(state);
 	++clone.annealing_depth;
 	split = blk_split(&clone, &blk,
-			state->tmp_buffer[min(f1 * blk.size, blk.size - 1)],
-			state->tmp_buffer[min(f2 * blk.size, blk.size - 1)]);
+			state->tmp_buffer[(int)(f1 * (blk.size - 1))],
+			state->tmp_buffer[(int)(f2 * (blk.size - 1))]);
 	i = 0;
 	while (i++ < 3)
 		blk_sort(&clone, &split.data[3 - i]);
@@ -53,33 +53,32 @@ static inline int	evaluate_pivots(
 	return (i);
 }
 
-static void
-	annealing_loop(t_state *s, const t_blk *blk, float temp, float *best)
+static int
+	annealing_loop(t_state *s, const t_blk *blk, float *data, int eval_best)
 {
 	size_t	i;
 	float	new[2];
 	int		eval;
-	int		eval_best;
 
 	i = 0;
-	eval_best = evaluate_pivots(s, *blk, best[0], best[1]);
 	while (i++ < s->pivots->max_tries)
 	{
-		new[0] = clamp(best[0] + get_random_delta(s) * s->pivots->factor_step,
+		new[0] = clamp(data[0] + get_random_delta(s) * s->pivots->factor_step,
 				0.f, 1.f);
-		new[1] = clamp(best[1] + get_random_delta(s) * s->pivots->factor_step,
+		new[1] = clamp(data[1] + get_random_delta(s) * s->pivots->factor_step,
 				0.f, 1.f);
 		if (new[0] == new[1])
 			continue ;
 		eval = evaluate_pivots(s, *blk, new[0], new[1]);
 		if (eval < eval_best || (state_random(s) / (float)UINT32_MAX)
-			< approx_exp((eval_best - eval) / temp))
+			< approx_exp((eval_best - eval) / data[2]))
 		{
 			eval_best = eval;
-			best[0] = new[0];
-			best[1] = new[1];
+			data[0] = new[0];
+			data[1] = new[1];
 		}
 	}
+	return (eval_best);
 }
 
 void	annealing_precise(
@@ -88,17 +87,20 @@ void	annealing_precise(
 	float *best_f1,
 	float *best_f2)
 {
-	float	best[2];
+	float	data[3];
 	float	temperature;
+	int		eval_best;
 
-	best[0] = 0.2;
-	best[1] = 0.6;
+	data[0] = *best_f1;
+	data[1] = *best_f2;
+	eval_best = evaluate_pivots(s, *blk, data[0], data[1]);
 	temperature = s->pivots->temperature_initial;
 	while (temperature > s->pivots->temperature_min / (1 + s->annealing_depth))
 	{
-		annealing_loop(s, blk, temperature, best);
+		data[2] = temperature;
+		eval_best = annealing_loop(s, blk, data, eval_best);
 		temperature *= s->pivots->temperature_cooling;
 	}
-	*best_f1 = best[0];
-	*best_f2 = best[1];
+	*best_f1 = data[0];
+	*best_f2 = data[1];
 }
