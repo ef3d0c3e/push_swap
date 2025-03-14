@@ -13,8 +13,7 @@
 #include "blk/blk.h"
 #include "sort/sort.h"
 #include "state/state.h"
-#include <stddef.h>
-#include <stdio.h>
+#include <ft_printf.h>
 
 static int	parse_int_err(const char *s, t_state *st)
 {
@@ -29,11 +28,11 @@ static int	parse_int_err(const char *s, t_state *st)
 	{
 		val = val * 10 + (s[i++] - '0');
 		if (val < p)
-			exit((dprintf(2, "Error\n"), state_free(st), 1));
+			exit((ft_dprintf(2, "Error\n"), state_free(st), 1));
 		p = val;
 	}
 	if (s[i])
-		exit((dprintf(2, "Error\n"), state_free(st), 1));
+		exit((ft_dprintf(2, "Error\n"), state_free(st), 1));
 	return (val);
 }
 
@@ -65,7 +64,7 @@ t_state	parse_args(const t_pivots_cfg *pivots, int argc, char **argv)
 	{
 		v = parse_int_err(argv[i++], &s);
 		if (find(v, s.sa.data, s.sa.size))
-			exit((dprintf(2, "Error\n"), state_free(&s), 1));
+			exit((ft_dprintf(2, "Error\n"), state_free(&s), 1));
 		s.sa.data[s.sa.size++] = v;
 	}
 	return (s);

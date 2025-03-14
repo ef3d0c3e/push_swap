@@ -14,9 +14,6 @@
 #include "stack/stack.h"
 #include "state/state.h"
 #include "util.h"
-
-#include <stddef.h>
-#include <stdio.h>
 #include <unistd.h>
 
 static int	ft_token(const char *s, const char *token)

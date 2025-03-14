@@ -12,7 +12,6 @@
 #include "sort.h"
 #include "../state/state.h"
 #include "../util.h"
-#include <stdio.h>
 
 /* Minimum of two values */
 static inline int	min(int x, int y)
