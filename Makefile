@@ -44,6 +44,9 @@ checker: $(OBJECTS) ./objs/src/checker.o $(LIB_PRINTF)
 	$(CC) $(IFLAGS) $(CFLAGS) \
 		$(OBJECTS) $(LFLAGS) -o $@ -lm
 
+.PHONY: bonus
+bonus: $(NAME) checker
+
 # ft_printf
 $(LIB_PRINTF):
 	echo "Building libprintf..."
